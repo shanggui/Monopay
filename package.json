@@ -17,7 +17,9 @@
     "format:check": "prettier --check .",
     "screenshot": "node scripts/screenshot.mjs",
     "flow:m1": "node scripts/m1-flow.mjs",
-    "flow:m2": "node scripts/m2-flow.mjs"
+    "flow:m2": "node scripts/m2-flow.mjs",
+    "flow:m3": "node scripts/m3-flow.mjs",
+    "flow:m4": "node scripts/m4-flow.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

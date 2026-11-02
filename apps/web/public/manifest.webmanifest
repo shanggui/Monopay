@@ -1,0 +1,18 @@
+{
+  "name": "Monopay 桌游账房",
+  "short_name": "桌游账房",
+  "description": "只接管钱，不接管棋盘的桌游银行账本。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF6EE",
+  "theme_color": "#FAF6EE",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

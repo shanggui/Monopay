@@ -5,7 +5,9 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import TransactionRow from '../components/TransactionRow.vue'
+import { feedback } from '../lib/feedback'
 import { categoryLabels, formatMoney, formatTime } from '../lib/format'
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh'
 import { getSnapshot, getTransactions, refund, reverse } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
@@ -127,6 +129,7 @@ async function doRefund(): Promise<void> {
     detail.value = null
     await refreshAll()
   } catch (cause) {
+    feedback('error')
     error.value = cause instanceof Error ? cause.message : '退款失败'
   } finally {
     actionLoading.value = false
@@ -153,6 +156,7 @@ async function doReverse(): Promise<void> {
     detail.value = null
     await refreshAll()
   } catch (cause) {
+    feedback('error')
     error.value = cause instanceof Error ? cause.message : '冲正失败'
   } finally {
     actionLoading.value = false
@@ -180,6 +184,10 @@ async function init(): Promise<void> {
   }
 }
 
+useVisibilityRefresh(() => {
+  void refreshAll().catch(() => undefined)
+})
+
 onMounted(() => {
   void init()
 })
@@ -198,7 +206,13 @@ onUnmounted(() => {
         <template #right>
           <span class="socket-state" :class="`socket-state--${socketStatus}`">
             <i></i>
-            {{ socketStatus === 'online' ? '实时连接' : '离线' }}
+            {{
+              socketStatus === 'online'
+                ? '实时连接'
+                : socketStatus === 'connecting'
+                  ? '连接中'
+                  : '离线'
+            }}
           </span>
         </template>
       </AppHeader>

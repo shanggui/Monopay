@@ -68,7 +68,7 @@ await player.screenshot({ path: 'docs/images/m2-ledger-player-390.png', fullPage
 await host.locator('.ledger-actions .primary-button').click()
 await host.waitForURL(/\/pay/)
 await host.locator('.pay-form').waitFor()
-await host.locator('input[type="number"]').fill('200')
+await host.getByRole('button', { name: '200', exact: true }).click()
 await host.screenshot({ path: 'docs/images/m2-pay-1440.png', fullPage: true })
 await host.getByRole('button', { name: /确认付款/ }).click()
 await host.locator('.success-card').waitFor()

@@ -4,6 +4,8 @@ import { ArrowRight, Check, Landmark, LoaderCircle } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import MoneyKeypad from '../components/MoneyKeypad.vue'
+import { feedback } from '../lib/feedback'
 import { categoryLabels, formatMoney, playerCategories } from '../lib/format'
 import { getSnapshot, pay } from '../services/api'
 import { useSessionStore } from '../stores/session'
@@ -160,6 +162,7 @@ async function submit(): Promise<void> {
       void router.push(`/room/${code.value}/ledger`)
     }, 850)
   } catch (cause) {
+    feedback('error')
     error.value = cause instanceof Error ? cause.message : '付款失败'
   } finally {
     submitting.value = false
@@ -245,17 +248,11 @@ onUnmounted(() => {
               </div>
             </div>
 
-            <label class="form-field">
+            <div class="form-field">
               <span>金额</span>
-              <div class="money-input money-input--large">
-                <input
-                  v-model.number="amount"
-                  type="number"
-                  min="1"
-                  max="1000000000"
-                  inputmode="numeric"
-                />
-                <b>M</b>
+              <div class="amount-display">
+                <strong>{{ formatMoney(amount) }}</strong>
+                <small>M</small>
               </div>
               <div class="quick-row">
                 <button
@@ -267,7 +264,8 @@ onUnmounted(() => {
                   {{ quick }}
                 </button>
               </div>
-            </label>
+              <MoneyKeypad v-model="amount" />
+            </div>
 
             <div class="form-field">
               <span>类别</span>

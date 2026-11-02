@@ -2,6 +2,7 @@
 import { ChevronLeft } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 import BrandMark from './BrandMark.vue'
+import ThemePicker from './ThemePicker.vue'
 
 withDefaults(
   defineProps<{
@@ -33,6 +34,9 @@ const router = useRouter()
       </div>
     </div>
 
-    <slot name="right" />
+    <div class="app-header__right">
+      <slot name="right" />
+      <ThemePicker />
+    </div>
   </header>
 </template>

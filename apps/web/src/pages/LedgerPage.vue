@@ -4,8 +4,11 @@ import { ArrowLeftRight, Landmark, ReceiptText, ShieldCheck } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import TransactionRow from '../components/TransactionRow.vue'
+import { feedback } from '../lib/feedback'
 import { formatMoney } from '../lib/format'
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh'
 import { endGame, getSnapshot } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
@@ -17,7 +20,9 @@ const session = useSessionStore()
 const loading = ref(true)
 const error = ref('')
 const socketStatus = ref<SocketStatus>('offline')
+const arrival = ref<{ amount: number; from: string } | null>(null)
 let socket: RoomSocket | undefined
+let arrivalTimer: number | undefined
 
 const code = computed(() => String(route.params.code ?? ''))
 const snapshot = computed(() => session.snapshot)
@@ -45,6 +50,22 @@ async function refresh(): Promise<void> {
 }
 
 function handleSocketEvent(event: WsServerEvent): void {
+  if (event.type === 'transaction') {
+    const transaction = event.data.transaction
+    if (
+      transaction.status === 'success' &&
+      transaction.toType === 'player' &&
+      transaction.toPlayerId === me.value?.id
+    ) {
+      arrival.value = { amount: transaction.amount, from: transaction.fromName }
+      feedback('receive')
+      window.clearTimeout(arrivalTimer)
+      arrivalTimer = window.setTimeout(() => {
+        arrival.value = null
+      }, 2600)
+    }
+  }
+
   if (
     event.type === 'transaction' ||
     event.type === 'room_updated' ||
@@ -105,12 +126,17 @@ async function init(): Promise<void> {
   }
 }
 
+useVisibilityRefresh(() => {
+  void refresh().catch(() => undefined)
+})
+
 onMounted(() => {
   void init()
 })
 
 onUnmounted(() => {
   socket?.close()
+  window.clearTimeout(arrivalTimer)
 })
 </script>
 
@@ -129,7 +155,7 @@ onUnmounted(() => {
       </AppHeader>
 
       <main v-if="loading" class="center-state">
-        <p>正在读取账本…</p>
+        <LoadingSkeleton />
       </main>
 
       <main v-else-if="error && !snapshot" class="center-state center-state--error">
@@ -287,5 +313,14 @@ onUnmounted(() => {
         <p v-if="error" class="form-error">{{ error }}</p>
       </main>
     </div>
+
+    <Transition name="toast">
+      <div v-if="arrival" class="arrival-toast" role="status">
+        <span>
+          <strong>+{{ formatMoney(arrival.amount) }} M</strong>
+          <small>来自 {{ arrival.from }} · 已到账</small>
+        </span>
+      </div>
+    </Transition>
   </div>
 </template>

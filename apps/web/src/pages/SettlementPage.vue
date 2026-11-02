@@ -5,6 +5,7 @@ import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { formatMoney } from '../lib/format'
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh'
 import { confirmSettlement, endGame, getSnapshot, resumeGame, updateAssets } from '../services/api'
 import { connectRoomSocket, type RoomSocket } from '../services/ws'
 import { useSessionStore } from '../stores/session'
@@ -177,6 +178,10 @@ async function init(): Promise<void> {
   }
 }
 
+useVisibilityRefresh(() => {
+  void refresh().catch(() => undefined)
+})
+
 onMounted(() => {
   void init()
 })
@@ -326,6 +331,7 @@ onUnmounted(() => {
           </div>
         </section>
 
+        <p class="compliance-note">仅使用游戏币 M，不可充值、提现或兑换现金。</p>
         <p v-if="success" class="form-success">{{ success }}</p>
         <p v-if="error" class="form-error">{{ error }}</p>
       </main>

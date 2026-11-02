@@ -4,8 +4,11 @@ import { Check, Landmark, LoaderCircle, ReceiptText, Wallet } from '@lucide/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import TransactionRow from '../components/TransactionRow.vue'
+import { feedback } from '../lib/feedback'
 import { categoryLabels, formatMoney } from '../lib/format'
+import { useVisibilityRefresh } from '../lib/useVisibilityRefresh'
 import { bankCollect, bankPay, endGame, getSnapshot, salary, setBankrupt } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
@@ -149,6 +152,7 @@ async function submit(): Promise<void> {
     success.value = `${modeTitle.value} ${formatMoney(amount.value)} M 已记账`
     note.value = ''
   } catch (cause) {
+    feedback('error')
     error.value = cause instanceof Error ? cause.message : '银行操作失败'
   } finally {
     submitting.value = false
@@ -187,6 +191,10 @@ async function init(): Promise<void> {
   }
 }
 
+useVisibilityRefresh(() => {
+  void refresh().catch(() => undefined)
+})
+
 onMounted(() => {
   void init()
 })
@@ -205,13 +213,19 @@ onUnmounted(() => {
         <template #right>
           <span class="socket-state" :class="`socket-state--${socketStatus}`">
             <i></i>
-            {{ socketStatus === 'online' ? '实时连接' : '离线' }}
+            {{
+              socketStatus === 'online'
+                ? '实时连接'
+                : socketStatus === 'connecting'
+                  ? '连接中'
+                  : '离线'
+            }}
           </span>
         </template>
       </AppHeader>
 
       <main v-if="loading" class="center-state">
-        <p>正在打开银行台…</p>
+        <LoadingSkeleton />
       </main>
 
       <main v-else-if="snapshot && room && me" class="bank-page">
