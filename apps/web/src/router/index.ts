@@ -28,6 +28,21 @@ const router = createRouter({
       name: 'lobby',
       component: () => import('../pages/LobbyPage.vue'),
     },
+    {
+      path: '/room/:code/ledger',
+      name: 'ledger',
+      component: () => import('../pages/LedgerPage.vue'),
+    },
+    {
+      path: '/room/:code/bank',
+      name: 'bank',
+      component: () => import('../pages/BankPage.vue'),
+    },
+    {
+      path: '/room/:code/pay',
+      name: 'pay',
+      component: () => import('../pages/PayPage.vue'),
+    },
   ],
   scrollBehavior: () => ({ top: 0 }),
 })

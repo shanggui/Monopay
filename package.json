@@ -10,13 +10,14 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @monopay/web --filter @monopay/server dev",
     "build": "pnpm --filter @monopay/web build && pnpm --filter @monopay/server build",
-    "test": "pnpm --filter @monopay/server test",
+    "test": "pnpm -r --if-present test",
     "typecheck": "pnpm --filter @monopay/web typecheck && pnpm --filter @monopay/server typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "screenshot": "node scripts/screenshot.mjs",
-    "flow:m1": "node scripts/m1-flow.mjs"
+    "flow:m1": "node scripts/m1-flow.mjs",
+    "flow:m2": "node scripts/m2-flow.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

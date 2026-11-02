@@ -70,6 +70,59 @@ export const roomEvents = sqliteTable(
   (table) => [index('room_events_room_id_created_at_idx').on(table.roomId, table.createdAt)],
 )
 
+export const transactionCategories = [
+  'initial',
+  'rent',
+  'purchase',
+  'tax',
+  'fine',
+  'chance',
+  'mortgage',
+  'loan',
+  'repay',
+  'trade',
+  'salary',
+  'refund',
+  'correction',
+  'other',
+] as const
+export type TransactionCategory = (typeof transactionCategories)[number]
+
+export const transactionStatuses = ['success', 'refunded', 'reversed'] as const
+export type TransactionStatus = (typeof transactionStatuses)[number]
+
+export const transactionPartyTypes = ['player', 'bank'] as const
+export type TransactionPartyType = (typeof transactionPartyTypes)[number]
+
+export const transactions = sqliteTable(
+  'transactions',
+  {
+    id: text('id').primaryKey(),
+    roomId: text('room_id')
+      .notNull()
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+    seq: integer('seq').notNull(),
+    fromType: text('from_type', { enum: transactionPartyTypes }).notNull(),
+    fromPlayerId: text('from_player_id'),
+    toType: text('to_type', { enum: transactionPartyTypes }).notNull(),
+    toPlayerId: text('to_player_id'),
+    amount: integer('amount').notNull(),
+    balanceAfterFrom: integer('balance_after_from'),
+    balanceAfterTo: integer('balance_after_to'),
+    category: text('category', { enum: transactionCategories }).notNull(),
+    note: text('note'),
+    status: text('status', { enum: transactionStatuses }).notNull().default('success'),
+    operatorId: text('operator_id').notNull(),
+    clientRequestId: text('client_request_id').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('transactions_room_seq_unique').on(table.roomId, table.seq),
+    uniqueIndex('transactions_room_request_unique').on(table.roomId, table.clientRequestId),
+    index('transactions_room_created_idx').on(table.roomId, table.createdAt),
+  ],
+)
+
 export const appMeta = sqliteTable('app_meta', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),

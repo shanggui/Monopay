@@ -15,6 +15,13 @@
       "when": 1793621184247,
       "tag": "0001_worthless_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793622106043,
+      "tag": "0002_rainy_randall",
+      "breakpoints": true
     }
   ]
 }

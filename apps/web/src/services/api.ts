@@ -1,10 +1,14 @@
 import type {
-  ApiResponse,
+  BankCollectRequest,
+  BankPayRequest,
   CreateRoomRequest,
   CreateRoomResponse,
   JoinRoomRequest,
   JoinRoomResponse,
+  PaymentResult,
+  PayRequest,
   RoomSnapshot,
+  SalaryRequest,
 } from '@monopay/shared'
 
 export class ApiError extends Error {
@@ -33,19 +37,22 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     cache: 'no-store',
   })
 
-  let payload: ApiResponse<T>
+  let payload: {
+    ok: boolean
+    data?: T
+    error?: { code: string; message: string }
+  }
   try {
-    payload = (await response.json()) as ApiResponse<T>
+    payload = (await response.json()) as typeof payload
   } catch {
     throw new ApiError('INTERNAL', '服务器返回了无法识别的内容')
   }
 
   if (!response.ok || !payload.ok) {
-    const error = 'error' in payload ? payload.error : undefined
-    throw new ApiError(error?.code ?? 'INTERNAL', error?.message ?? '请求失败')
+    throw new ApiError(payload.error?.code ?? 'INTERNAL', payload.error?.message ?? '请求失败')
   }
 
-  return payload.data
+  return payload.data as T
 }
 
 export function createRoom(payload: CreateRoomRequest): Promise<CreateRoomResponse> {
@@ -74,6 +81,73 @@ export function getSnapshot(code: string, token: string): Promise<RoomSnapshot> 
   return request<RoomSnapshot>(
     `/api/rooms/${encodeURIComponent(code)}/snapshot`,
     { method: 'GET' },
+    token,
+  )
+}
+
+export function startGame(code: string, token: string): Promise<RoomSnapshot> {
+  return request<RoomSnapshot>(
+    `/api/rooms/${encodeURIComponent(code)}/actions/start`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+    token,
+  )
+}
+
+export function pay(code: string, payload: PayRequest, token: string): Promise<PaymentResult> {
+  return request<PaymentResult>(
+    `/api/rooms/${encodeURIComponent(code)}/actions/pay`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  )
+}
+
+export function bankPay(
+  code: string,
+  payload: BankPayRequest,
+  token: string,
+): Promise<PaymentResult> {
+  return request<PaymentResult>(
+    `/api/rooms/${encodeURIComponent(code)}/actions/bank-pay`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  )
+}
+
+export function bankCollect(
+  code: string,
+  payload: BankCollectRequest,
+  token: string,
+): Promise<PaymentResult> {
+  return request<PaymentResult>(
+    `/api/rooms/${encodeURIComponent(code)}/actions/bank-collect`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    token,
+  )
+}
+
+export function salary(
+  code: string,
+  payload: SalaryRequest,
+  token: string,
+): Promise<PaymentResult> {
+  return request<PaymentResult>(
+    `/api/rooms/${encodeURIComponent(code)}/actions/salary`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
     token,
   )
 }

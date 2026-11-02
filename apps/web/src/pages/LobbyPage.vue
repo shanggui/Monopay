@@ -14,7 +14,7 @@ import QRCode from 'qrcode'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
-import { dissolveRoom, getSnapshot } from '../services/api'
+import { dissolveRoom, getSnapshot, startGame } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
 
@@ -27,6 +27,7 @@ const router = useRouter()
 const session = useSessionStore()
 
 const loading = ref(true)
+const starting = ref(false)
 const error = ref('')
 const copied = ref(false)
 const qrDataUrl = ref('')
@@ -38,6 +39,8 @@ const room = computed(() => session.snapshot?.room ?? null)
 const host = computed(() => session.snapshot?.host ?? null)
 const isHost = computed(() => session.snapshot?.me.isHost ?? false)
 const isDissolved = computed(() => room.value?.status === 'dissolved')
+const isPlaying = computed(() => room.value?.status === 'playing')
+const canStart = computed(() => (session.snapshot?.players.length ?? 0) >= 2)
 const roomUrl = computed(() => session.roomUrl ?? `${window.location.origin}/r/${code.value}`)
 
 const playerRows = computed<PlayerRow[]>(() => {
@@ -104,8 +107,37 @@ async function renderQr(): Promise<void> {
 }
 
 function handleSocketEvent(event: WsServerEvent): void {
-  if (event.type === 'player_joined' || event.type === 'room_updated') {
+  if (
+    event.type === 'player_joined' ||
+    event.type === 'room_updated' ||
+    event.type === 'transaction'
+  ) {
     void refresh().catch(() => undefined)
+  }
+}
+
+function enterRoom(): void {
+  const snapshot = session.snapshot
+  if (!snapshot) return
+  const target = snapshot.me.isPlayer ? `/room/${code.value}/ledger` : `/room/${code.value}/bank`
+  void router.push(target)
+}
+
+async function start(): Promise<void> {
+  if (!isHost.value || starting.value) return
+  starting.value = true
+  error.value = ''
+
+  try {
+    const token = session.token
+    if (!token) return
+    const snapshot = await startGame(code.value, token)
+    session.setSnapshot(snapshot)
+    enterRoom()
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '开始游戏失败'
+  } finally {
+    starting.value = false
   }
 }
 
@@ -285,16 +317,47 @@ onUnmounted(() => {
             </dl>
 
             <template v-if="isHost">
-              <button class="primary-button" type="button" disabled>
+              <button v-if="isPlaying" class="primary-button" type="button" @click="enterRoom">
                 <CircleCheck :size="18" :stroke-width="1.8" />
-                开始游戏 · M2 开放
+                进入{{ session.snapshot?.me.isPlayer ? '我的账本' : '银行台' }}
               </button>
+              <button
+                v-else-if="room.status === 'waiting'"
+                class="primary-button"
+                type="button"
+                :disabled="starting || !canStart"
+                @click="start"
+              >
+                <LoaderCircle v-if="starting" class="spinning" :size="18" :stroke-width="2" />
+                <CircleCheck v-else :size="18" :stroke-width="1.8" />
+                {{ !canStart ? '至少 2 名玩家' : starting ? '正在发初始资金' : '开始游戏' }}
+              </button>
+
+              <button
+                v-if="isPlaying && session.snapshot?.me.isPlayer && room.hostIdentity === 'dual'"
+                class="ghost-button"
+                type="button"
+                @click="router.push(`/room/${code}/bank`)"
+              >
+                <Landmark :size="16" :stroke-width="1.8" />
+                切换到银行台
+              </button>
+
               <button class="ghost-button" type="button" @click="dissolve">
                 <LogOut :size="16" :stroke-width="1.8" />
                 解散房间
               </button>
             </template>
-            <p v-else class="waiting-note">等待房主开始游戏。开局后不能加入新玩家。</p>
+            <p v-else-if="isPlaying" class="waiting-note">
+              对局进行中。
+              <button class="text-link inline-link" type="button" @click="enterRoom">
+                进入我的账本
+              </button>
+            </p>
+            <p v-else-if="room.status === 'waiting'" class="waiting-note">
+              等待房主开始游戏。开局后不能加入新玩家。
+            </p>
+            <p v-else class="waiting-note">房间已经结束，只能查看。</p>
 
             <p v-if="error" class="form-error">{{ error }}</p>
           </aside>

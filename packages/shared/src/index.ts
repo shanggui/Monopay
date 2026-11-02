@@ -56,6 +56,108 @@ export const joinRoomRequestSchema = z.object({
 
 export type JoinRoomRequest = z.infer<typeof joinRoomRequestSchema>
 
+export const transactionCategorySchema = z.enum([
+  'initial',
+  'rent',
+  'purchase',
+  'tax',
+  'fine',
+  'chance',
+  'mortgage',
+  'loan',
+  'repay',
+  'trade',
+  'salary',
+  'refund',
+  'correction',
+  'other',
+])
+
+export type TransactionCategory = z.infer<typeof transactionCategorySchema>
+
+export const transactionStatusSchema = z.enum(['success', 'refunded', 'reversed'])
+export type TransactionStatus = z.infer<typeof transactionStatusSchema>
+
+export const payRequestSchema = z
+  .object({
+    toType: z.enum(['player', 'bank']),
+    toPlayerId: z.string().min(1).optional(),
+    amount: moneySchema,
+    category: transactionCategorySchema,
+    note: z.string().trim().max(50).optional(),
+    clientRequestId: z.string().trim().min(8).max(80),
+    fromType: z.enum(['player', 'bank']).optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.toType === 'player' && !value.toPlayerId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['toPlayerId'],
+        message: '选择收款玩家',
+      })
+    }
+  })
+
+export type PayRequest = z.infer<typeof payRequestSchema>
+
+export const bankPayRequestSchema = z.object({
+  toPlayerId: z.string().min(1),
+  amount: moneySchema,
+  category: transactionCategorySchema,
+  note: z.string().trim().max(50).optional(),
+  clientRequestId: z.string().trim().min(8).max(80),
+})
+
+export type BankPayRequest = z.infer<typeof bankPayRequestSchema>
+
+export const bankCollectRequestSchema = z.object({
+  fromPlayerId: z.string().min(1),
+  amount: moneySchema,
+  category: transactionCategorySchema,
+  note: z.string().trim().max(50).optional(),
+  clientRequestId: z.string().trim().min(8).max(80),
+})
+
+export type BankCollectRequest = z.infer<typeof bankCollectRequestSchema>
+
+export const salaryRequestSchema = z.object({
+  toPlayerId: z.string().min(1),
+  amount: moneySchema.optional(),
+  nickname: z.string().trim().max(20).optional(),
+  clientRequestId: z.string().trim().min(8).max(80),
+})
+
+export type SalaryRequest = z.infer<typeof salaryRequestSchema>
+
+export interface TransactionView {
+  id: string
+  seq: number
+  fromType: 'player' | 'bank'
+  fromPlayerId: string | null
+  fromName: string
+  toType: 'player' | 'bank'
+  toPlayerId: string | null
+  toName: string
+  amount: number
+  balanceAfterFrom: number | null
+  balanceAfterTo: number | null
+  category: TransactionCategory
+  note: string | null
+  status: TransactionStatus
+  createdAt: string
+}
+
+export interface BankSummary {
+  issued: number
+  collected: number
+  net: number
+}
+
+export interface PaymentResult {
+  transaction: TransactionView
+  snapshot: RoomSnapshot
+}
+
 export interface PlayerView {
   id: string
   nickname: string
@@ -85,6 +187,8 @@ export interface RoomSnapshot {
   host: PlayerView
   me: PlayerView
   players: PlayerView[]
+  transactions: TransactionView[]
+  bankSummary: BankSummary
   lastSeq: number
 }
 
@@ -107,6 +211,7 @@ export type WsServerEvent =
   | { type: 'ready'; data: { roomCode: string; playerId: string; isHost: boolean } }
   | { type: 'player_joined'; data: { player: PlayerView } }
   | { type: 'room_updated'; data: { status: RoomStatus; seq: number } }
+  | { type: 'transaction'; data: { transaction: TransactionView } }
   | { type: 'pong' }
   | { type: 'error'; data: { code: string; message: string } }
 
