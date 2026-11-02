@@ -381,6 +381,24 @@ export function dissolveRoom(code: string, rawToken?: string): { code: string; s
   return { code: auth.room.code, seq: nextSeq }
 }
 
+export function purgeExpiredRooms(): number {
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1_000)
+  const expired = db
+    .select()
+    .from(rooms)
+    .all()
+    .filter(
+      (room) =>
+        (room.status === 'dissolved' || room.status === 'settled') && room.updatedAt < cutoff,
+    )
+
+  for (const room of expired) {
+    db.delete(rooms).where(eq(rooms.id, room.id)).run()
+  }
+
+  return expired.length
+}
+
 export function expireStaleRooms(): number {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1_000)
   const staleRooms = db

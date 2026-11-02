@@ -36,39 +36,47 @@ function bearerToken(request: FastifyRequest): string | undefined {
 }
 
 export function registerRoomRoutes(app: FastifyInstance): void {
-  app.post('/api/rooms', async (request, reply) => {
-    const data = createRoom(request.body)
-    return reply.code(201).send({
-      ok: true,
-      data,
-      serverTime: Date.now(),
-    })
-  })
+  app.post(
+    '/api/rooms',
+    { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
+    async (request, reply) => {
+      const data = createRoom(request.body)
+      return reply.code(201).send({
+        ok: true,
+        data,
+        serverTime: Date.now(),
+      })
+    },
+  )
 
-  app.post<{ Params: { code: string } }>('/api/rooms/:code/join', async (request) => {
-    const rawToken = bearerToken(request)
-    const data = joinRoom(request.params.code, request.body, rawToken)
+  app.post<{ Params: { code: string } }>(
+    '/api/rooms/:code/join',
+    { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } },
+    async (request) => {
+      const rawToken = bearerToken(request)
+      const data = joinRoom(request.params.code, request.body, rawToken)
 
-    const tokenForView = data.playerToken ?? rawToken
-    if (tokenForView) {
-      try {
-        const auth = authenticateRoom(request.params.code, tokenForView)
-        const snapshot = getSnapshot(auth)
-        broadcastToRoom(auth.room.code, {
-          type: 'player_joined',
-          data: { player: snapshot.me },
-        })
-      } catch (error) {
-        request.log.warn({ error }, 'failed to broadcast player_joined')
+      const tokenForView = data.playerToken ?? rawToken
+      if (tokenForView) {
+        try {
+          const auth = authenticateRoom(request.params.code, tokenForView)
+          const snapshot = getSnapshot(auth)
+          broadcastToRoom(auth.room.code, {
+            type: 'player_joined',
+            data: { player: snapshot.me },
+          })
+        } catch (error) {
+          request.log.warn({ error }, 'failed to broadcast player_joined')
+        }
       }
-    }
 
-    return {
-      ok: true,
-      data,
-      serverTime: Date.now(),
-    }
-  })
+      return {
+        ok: true,
+        data,
+        serverTime: Date.now(),
+      }
+    },
+  )
 
   app.get<{ Params: { code: string } }>('/api/rooms/:code/snapshot', async (request) => {
     const auth = authenticateRoom(request.params.code, bearerToken(request))
@@ -120,19 +128,23 @@ export function registerRoomRoutes(app: FastifyInstance): void {
     }
   })
 
-  app.post<{ Params: { code: string } }>('/api/rooms/:code/actions/pay', async (request) => {
-    const token = bearerToken(request)
-    const auth = authenticateRoom(request.params.code, token)
-    const payload = payRequestSchema.parse(request.body)
-    const transaction = playerPay(auth, payload)
-    const snapshot = getSnapshot(authenticateRoom(request.params.code, token))
-    broadcastToRoom(auth.room.code, { type: 'transaction', data: { transaction } })
-    return {
-      ok: true,
-      data: { transaction, snapshot } satisfies PaymentResult,
-      serverTime: Date.now(),
-    }
-  })
+  app.post<{ Params: { code: string } }>(
+    '/api/rooms/:code/actions/pay',
+    { config: { rateLimit: { max: 1200, timeWindow: '1 minute' } } },
+    async (request) => {
+      const token = bearerToken(request)
+      const auth = authenticateRoom(request.params.code, token)
+      const payload = payRequestSchema.parse(request.body)
+      const transaction = playerPay(auth, payload)
+      const snapshot = getSnapshot(authenticateRoom(request.params.code, token))
+      broadcastToRoom(auth.room.code, { type: 'transaction', data: { transaction } })
+      return {
+        ok: true,
+        data: { transaction, snapshot } satisfies PaymentResult,
+        serverTime: Date.now(),
+      }
+    },
+  )
 
   app.post<{ Params: { code: string } }>('/api/rooms/:code/actions/bank-pay', async (request) => {
     const token = bearerToken(request)

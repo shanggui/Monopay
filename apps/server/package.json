@@ -1,7 +1,7 @@
 {
   "name": "@monopay/server",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -12,10 +12,13 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "backup": "node scripts/backup.mjs",
+    "restore": "node scripts/restore.mjs",
     "lint": "eslint src"
   },
   "dependencies": {
     "@fastify/helmet": "^13.0.0",
+    "@fastify/rate-limit": "^11.2.1",
     "@fastify/static": "^10.0.0",
     "@fastify/websocket": "^11.3.6",
     "@monopay/ledger-core": "workspace:*",

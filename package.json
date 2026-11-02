@@ -1,7 +1,7 @@
 {
   "name": "monopay",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "packageManager": "pnpm@12.14.0",
   "engines": {
@@ -19,7 +19,9 @@
     "flow:m1": "node scripts/m1-flow.mjs",
     "flow:m2": "node scripts/m2-flow.mjs",
     "flow:m3": "node scripts/m3-flow.mjs",
-    "flow:m4": "node scripts/m4-flow.mjs"
+    "flow:m4": "node scripts/m4-flow.mjs",
+    "load:m5": "node scripts/m5-load.mjs",
+    "viewports:m5": "node scripts/m5-viewports.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

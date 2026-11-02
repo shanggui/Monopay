@@ -1,6 +1,10 @@
+import { eq } from 'drizzle-orm'
 import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { buildApp } from './app'
+import { db } from './db'
+import { rooms } from './db/schema'
+import { purgeExpiredRooms } from './rooms/service'
 
 let app: FastifyInstance
 
@@ -52,5 +56,46 @@ describe('M0 service endpoints', () => {
       ok: false,
       error: { code: 'NOT_FOUND' },
     })
+  })
+
+  it('purges dissolved rooms after the retention window', async () => {
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/rooms',
+      payload: {
+        hostIdentity: 'dual',
+        initialFunds: 2000,
+        maxPlayers: 2,
+        hostNickname: '待清理房主',
+      },
+    })
+    const room = created.json().data
+
+    db.update(rooms)
+      .set({ status: 'dissolved', updatedAt: new Date(0) })
+      .where(eq(rooms.code, room.roomCode))
+      .run()
+
+    expect(purgeExpiredRooms()).toBeGreaterThan(0)
+
+    const missing = await app.inject({
+      method: 'GET',
+      url: `/api/rooms/${room.roomCode}/snapshot`,
+      headers: { authorization: `Bearer ${room.hostToken}` },
+    })
+    expect(missing.statusCode).toBe(404)
+  })
+
+  it('sets security headers including a restrictive CSP', async () => {
+    const response = await app.inject({ method: 'GET', url: '/api/meta' })
+    const csp = response.headers['content-security-policy']
+
+    expect(response.headers['x-content-type-options']).toBe('nosniff')
+    expect(response.headers['x-frame-options']).toBe('SAMEORIGIN')
+    expect(response.headers['referrer-policy']).toBe('no-referrer')
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain("script-src 'self'")
+    expect(csp).toContain("frame-ancestors 'none'")
+    expect(csp).toContain("object-src 'none'")
   })
 })

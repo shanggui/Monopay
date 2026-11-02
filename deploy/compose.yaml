@@ -5,13 +5,29 @@ services:
     image: ${MONOPAY_IMAGE:-ghcr.io/shanggui/monopay}:${MONOPAY_TAG:-latest}
     restart: unless-stopped
     init: true
+    stop_grace_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
     environment:
       PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL is required}
       DB_PATH: /data/monopay.db
+      BACKUP_DIR: /backup
       TRUST_PROXY: 'true'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       APP_VERSION: ${MONOPAY_TAG:-dev}
     volumes:
       - ./data:/data
+      - ./backups:/backup
     expose:
       - '3000'
     healthcheck:
@@ -28,6 +44,12 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
     ports:
       - '80:80'
       - '443:443'

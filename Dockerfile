@@ -34,8 +34,9 @@ ENV APP_VERSION=$APP_VERSION
 ENV DB_PATH=/data/monopay.db
 ENV WEB_DIST=/app/web
 WORKDIR /app
-RUN mkdir -p /data && chown -R node:node /data
+RUN mkdir -p /data /backup && chown -R node:node /data /backup
 COPY --from=build --chown=node:node /out/server ./
+COPY --from=build --chown=node:node /app/apps/server/scripts /app/scripts
 COPY --from=build --chown=node:node /app/apps/web/dist /app/web
 USER node
 EXPOSE 3000

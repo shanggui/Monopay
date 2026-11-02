@@ -1,4 +1,5 @@
 import helmet from '@fastify/helmet'
+import rateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import type { HealthData, ReadyData } from '@monopay/shared'
 import { serviceName } from '@monopay/shared'
@@ -10,7 +11,7 @@ import { checkDatabase, closeDatabase, initializeMeta, runMigrations } from './d
 import { env } from './env'
 import { AppError } from './lib/errors'
 import { registerRoomRoutes } from './routes/rooms'
-import { expireStaleRooms } from './rooms/service'
+import { expireStaleRooms, purgeExpiredRooms } from './rooms/service'
 import { registerWebSocket } from './ws'
 
 export interface AppMetaData {
@@ -23,9 +24,26 @@ export async function buildApp(): Promise<FastifyInstance> {
   runMigrations()
   const initializedAt = initializeMeta()
   expireStaleRooms()
+  purgeExpiredRooms()
 
   const app = Fastify({
-    logger: env.NODE_ENV === 'test' ? false : { level: env.LOG_LEVEL },
+    logger:
+      env.NODE_ENV === 'test'
+        ? false
+        : {
+            level: env.LOG_LEVEL,
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.headers.cookie',
+                'req.body.token',
+                'req.body.hostToken',
+                'req.body.playerToken',
+                'res.headers["set-cookie"]',
+              ],
+              censor: '[REDACTED]',
+            },
+          },
     trustProxy: env.TRUST_PROXY,
   })
 
@@ -33,6 +51,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     () => {
       try {
         expireStaleRooms()
+        purgeExpiredRooms()
       } catch (error) {
         app.log.error(error, 'room expiry job failed')
       }
@@ -41,9 +60,28 @@ export async function buildApp(): Promise<FastifyInstance> {
   )
   expiryTimer.unref()
 
-  app.register(helmet, {
-    contentSecurityPolicy: false,
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+        fontSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'", 'ws:', 'wss:'],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+      },
+    },
     crossOriginResourcePolicy: { policy: 'same-site' },
+    referrerPolicy: { policy: 'no-referrer' },
+  })
+
+  await app.register(rateLimit, {
+    global: false,
   })
 
   app.get('/healthz', async () => {

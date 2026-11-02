@@ -2,7 +2,7 @@
 
 > 只接管钱，不接管棋盘。2–6 人桌游的电子银行账本。
 
-当前进度：**M4 体验与实时打磨（本地）**。M3 完整账本流程已可用，并接入六套主题、音效/震动、数字键盘、到账反馈、过渡动画、骨架、离线提示和 PWA manifest。服务器部署与上线验收留到最后。
+当前进度：**M5 本地验收完成，等待生产部署**。完整账本、纠错、结算、六套主题、音效和实时反馈已本地通过；1000 笔重放、6 人并发、备份恢复、安全头和重启持久化已验证。服务器 HTTPS 部署是最后一步。
 
 ## 技术栈
 
@@ -45,6 +45,8 @@ pnpm flow:m1
 pnpm flow:m2
 pnpm flow:m3
 pnpm flow:m4
+pnpm load:m5
+pnpm viewports:m5
 ```
 
 生产构建后可直接跑：
@@ -112,6 +114,8 @@ docker compose ps
 
 打开 `https://<DOMAIN>/readyz` 验证。Caddy 会自动申请 HTTPS 证书。
 
+完整步骤、备份/恢复、回滚和排障见 [部署运行手册](docs/部署运行手册.md)。数据边界见 [隐私与数据删除](docs/隐私与数据删除.md)。
+
 更新：
 
 ```bash
@@ -172,6 +176,18 @@ docker compose up -d
 
 详见 [M4 验收记录](docs/M4验收记录.md)。
 
+## M5 验收、安全与上线准备（本地完成）
+
+- 测试：`ledger-core` 3 + server 32，共 35；lint/format/typecheck/build 全通过。
+- 重放：1000 笔顺序付款余额/流水一致；6 人并发付款 6/6 成功。
+- 恢复：SQLite Online Backup → 新库 → `/readyz` 200，房间/流水计数一致。
+- 重启：同 DB 重启后房间与凭证仍可读。
+- 安全：CSP/HSTS/Helmet、创建/加入/付款限流、token hash、日志脱敏；`pnpm audit --prod` 0 漏洞。
+- 布局：390/768/1440 无横向滚动。
+- 文档：运行手册、隐私与数据删除、Changelog。
+
+详见 [M5 验收记录](docs/M5验收记录.md)。
+
 ## M0 工程与部署验收
 
 详见 [M0 验收记录](docs/M0验收记录.md)。
@@ -189,7 +205,7 @@ docker compose up -d
 
 ## 下一步
 
-按 [落地计划](docs/落地计划.md) 进入 M5：产品验收、100/1000 笔重放、并发、限流/CSP/Helmet、SQLite 备份恢复、生产部署、smoke test 与回滚演练。服务器 HTTPS 部署在本阶段统一验证。
+本地 M0–M5 已完成。剩余：把 `v0.1.0` 镜像部署到用户的服务器，完成 HTTPS、smoke test、备份定时任务和回滚演练。步骤见 [部署运行手册](docs/部署运行手册.md)。
 
 ## 合规边界
 
