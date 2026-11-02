@@ -127,6 +127,10 @@ docker compose up -d
 
 > 如果服务器已有 Nginx 且 80/443 被占用，删掉 compose 里的 `caddy` 服务，把 app 改成
 > `ports: ["127.0.0.1:3000:3000"]`，由现有 Nginx 反代。
+>
+> 没有域名时使用 [deploy/compose.ip.yaml](deploy/compose.ip.yaml) 与
+> [deploy/.env.ip.example](deploy/.env.ip.example)，走 `http://IP:3000`；可完成功能验证，
+> 但不等于 HTTPS 生产验收。
 
 ## M1 房间生命周期（本地完成）
 
