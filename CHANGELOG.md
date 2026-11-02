@@ -9,6 +9,7 @@
 - 移除未使用的 Vant、Tailwind、`unplugin-vue-components` 依赖与构建插件。
 - 新增文档索引、贡献指南、安全策略、EditorConfig 和 Prettier 忽略规则。
 - 部署收口为 app-only Compose + 可选反向代理；移除 Caddy、`compose.ip.yaml`、`deploy.sh`、`smoke.sh`，镜像保持公开。
+- Compose 改为 `PUID`/`PGID` 运行，部署文档提示用 `id -u` / `id -g` 配置并对齐数据目录 owner。
 
 ## 0.1.1 — 2026-11-02
 

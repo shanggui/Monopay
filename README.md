@@ -38,9 +38,17 @@ curl -fsSL \
   -o compose.yaml https://raw.githubusercontent.com/shanggui/Monopay/main/deploy/compose.yaml \
   -o .env https://raw.githubusercontent.com/shanggui/Monopay/main/deploy/.env.example
 
-sudo chown -R 1000:1000 data backups
+# 查看当前部署用户的 UID/GID，稍后填入 .env
+id -u
+id -g
+
+# 把 data/backups 的所有者改成同一个 UID/GID
+sudo chown -R "$(id -u):$(id -g)" data backups
 chmod 600 .env
 ```
+
+> [!IMPORTANT]
+> 用普通部署用户执行，不要用 root 跑 Compose。容器会以 `.env` 里的 `PUID`/`PGID` 运行。
 
 只下载两个文件：
 
@@ -53,6 +61,10 @@ Compose 只启动 app。TLS 反向代理由服务器现有服务承担，不包�
 ### 2. 修改 `.env`
 
 ```dotenv
+# 改成上面 `id -u` / `id -g` 的输出
+PUID=<id -u 输出>
+PGID=<id -g 输出>
+
 PUBLIC_URL=https://monopay.example.com
 BIND_ADDR=127.0.0.1
 APP_PORT=3000
@@ -62,6 +74,8 @@ MONOPAY_IMAGE=ghcr.io/shanggui/monopay
 MONOPAY_TAG=v0.1.1
 LOG_LEVEL=info
 ```
+
+`PUID` / `PGID` 必须是宿主机部署用户，并且和 `data/`、`backups/` 的 owner 一致。
 
 `PUBLIC_URL` 必须和浏览器实际访问地址一致，否则二维码和分享链接会指向错误地址。
 
