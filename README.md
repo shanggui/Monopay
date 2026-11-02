@@ -1,159 +1,140 @@
-# Monopay 桌游账房
+<p align="center">
+  <img src="apps/web/public/favicon.svg" width="76" alt="Monopay logo">
+</p>
 
-> 只接管钱，不接管棋盘。2–6 人桌游的电子银行账本。
+<h1 align="center">Monopay 桌游账房</h1>
 
-[![CI](https://github.com/shanggui/Monopay/actions/workflows/ci.yml/badge.svg)](https://github.com/shanggui/Monopay/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/badge/release-v0.1.1-2563EB)](https://github.com/shanggui/Monopay/releases/tag/v0.1.1)
-[![Node](https://img.shields.io/badge/node-%3E%3D24-339933)](https://nodejs.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-12.14-F69220)](https://pnpm.io/)
+<p align="center">
+  只接管钱，不接管棋盘。2–6 人桌游的电子银行账本。
+</p>
 
-实体桌游继续用棋盘、骰子和卡牌；**钱由 Monopay 接管**。开桌、发初始资金、付款、退款、银行收款、对账和结算都在浏览器完成。所有设备打开同一个 Web 应用，手机扫码即可加入。
+<p align="center">
+  <a href="https://github.com/shanggui/Monopay/actions/workflows/ci.yml"><img src="https://github.com/shanggui/Monopay/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/release-v0.1.1-2563EB" alt="v0.1.1">
+  <img src="https://img.shields.io/badge/docker%20compose-ready-2496ED" alt="Docker Compose">
+</p>
+
+Monopay 是给实体桌游用的电子账本。棋盘、骰子和卡牌照常玩，钱交给它：开桌、发初始资金、付款、退款、银行收款、对账和排名，全部在浏览器完成。手机扫码即可加入，不需要安装 App。
 
 ![Monopay 首页](docs/images/m5-home-1440.png)
 
 ## 功能
 
-- **房间**：银行-only / 双身份房主、房号 + 二维码加入、2–6 名玩家、断线重连。
-- **账本**：初始资金、玩家付款、银行付款/收款、工资、余额不足保护、幂等重试。
-- **纠错**：收款方退款、房主冲正、矫正原因、破产标记/取消。
-- **流水**：全部/我付出/我收到/银行、分页、详情、退款/冲正入口。
-- **结算**：结束游戏 → 资产/负债 → 净资产排名 → 只读；银行-only 不参与排名。
-- **体验**：六套主题、深色、数字键盘、到账 toast、音效/震动、骨架、页面过渡。
-- **实时**：WebSocket 房间事件、收款人到账提示、离线横幅、回前台刷新。
-- **安全**：CSP/HSTS、创建/加入/付款限流、token hash、日志脱敏、7 天数据清理。
+- 房主可创建银行-only 或双身份房间，2–6 名玩家通过房号/二维码加入。
+- 玩家付款、银行付款/收款、工资、退款、冲正、破产标记和只读结算。
+- 每笔流水保留双方交易后余额，支持幂等重试、筛选、分页和详情。
+- 六套主题、数字键盘、到账提示、音效/震动，以及移动端适配。
+- 仅使用游戏币 **M**，不可充值、提现或兑换现金。
 
-> 仅使用游戏币 **M**，不可充值、提现或兑换现金。
+## 用 Docker Compose 部署
 
-## 快速开始
+### 准备
 
-要求：Node.js 24+、pnpm 12+。
+- Linux 服务器，`amd64` 或 `arm64`
+- Docker Engine 24+ 与 Docker Compose v2
+- 有域名：DNS 指向服务器，80/443 可用
+- 无域名：放行 `3000` 端口，使用 `http://服务器IP:3000`
 
-```bash
-cp .env.example .env
-pnpm install
-pnpm dev
-```
-
-- Web：http://localhost:5173
-- API：http://localhost:3000
-- 健康检查：`/healthz`、`/readyz`
-- 本地 SQLite：`apps/server/data/dev.db`
-
-Vite 会把 `/healthz`、`/readyz`、`/api`、`/ws` 代理到 3000 端口。
-
-## 质量检查
+镜像：`ghcr.io/shanggui/monopay:v0.1.1`。如果 GHCR 包是私有的，先登录：
 
 ```bash
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm audit --prod
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <github-user> --password-stdin
 ```
 
-浏览器流程（先启动服务）：
-
-```bash
-pnpm flow:m1
-pnpm flow:m2
-pnpm flow:m3
-pnpm flow:m4
-pnpm load:m5
-pnpm viewports:m5
-```
-
-生产构建：
-
-```bash
-pnpm build
-node apps/server/dist/index.js
-```
-
-默认从 `apps/web/dist` 提供 SPA，API 和静态文件同源。
-
-## 架构
-
-```text
-apps/
-  web/                    Vue 3 + Vite + TypeScript
-  server/                 Fastify 5 + Drizzle + SQLite
-packages/
-  shared/                 Zod schema、API / WS 类型
-  ledger-core/            纯账本规则（金额/扣款/入账）
-deploy/                   Compose、Caddy、部署/ smoke 脚本
-docs/                     产品、设计、验收、运维文档
-scripts/                  Playwright 流程、压测、截图
-.github/workflows/        CI + 多架构镜像发布
-Dockerfile                多阶段生产镜像
-```
-
-关键设计：
-
-- **单 app 副本 + 进程内 WebSocket**，SQLite WAL；不支持水平扩容。
-- 所有余额变动写 `transactions`，保存双方交易后余额与房间 `seq`。
-- 客户端 `clientRequestId` 幂等；同键不同参数拒绝。
-- 退款/冲正保留原流水并通过 `refundOf` / `reversalOf` 关联。
-- 主题只切 CSS Variables；默认 A 奶油与钴蓝。
-
-## 部署
-
-有域名（Caddy 自动 HTTPS）：
-
-```text
-deploy/compose.yaml
-deploy/Caddyfile
-deploy/.env.example
-deploy/deploy.sh
-deploy/smoke.sh
-```
-
-无域名 / IP + HTTP：
-
-```text
-deploy/compose.ip.yaml
-deploy/.env.ip.example
-```
+### 有域名：Caddy 自动 HTTPS
 
 ```bash
 mkdir -p /opt/monopay/{data,backups}
 cd /opt/monopay
-cp /path/to/Monopay/deploy/{compose.yaml,Caddyfile,deploy.sh,smoke.sh} .
+
+cp /path/to/Monopay/deploy/compose.yaml .
+cp /path/to/Monopay/deploy/Caddyfile .
+cp /path/to/Monopay/deploy/deploy.sh .
+cp /path/to/Monopay/deploy/smoke.sh .
 cp /path/to/Monopay/deploy/.env.example .env
-sudo chown -R 1000:1000 data backups
-# 编辑 DOMAIN / PUBLIC_URL / MONOPAY_TAG
+
 chmod +x deploy.sh smoke.sh
+sudo chown -R 1000:1000 data backups
+```
+
+编辑 `.env`：
+
+```dotenv
+DOMAIN=monopay.example.com
+PUBLIC_URL=https://monopay.example.com
+MONOPAY_IMAGE=ghcr.io/shanggui/monopay
+MONOPAY_TAG=v0.1.1
+LOG_LEVEL=info
+```
+
+启动并验证：
+
+```bash
 ./deploy.sh
 ```
 
-完整步骤、备份恢复、回滚和排障见 **[部署运行手册](docs/部署运行手册.md)**。
-
-镜像：
+`deploy.sh` 会拉取镜像、等待健康检查，并执行 `smoke.sh`。完成后访问：
 
 ```text
-ghcr.io/shanggui/monopay:v0.1.1   # amd64 + arm64
-ghcr.io/shanggui/monopay:latest
+https://monopay.example.com/readyz
 ```
 
-## 状态与限制
+Caddy 会自动申请和续期 HTTPS 证书。
 
-- 当前版本：`v0.1.1`；本地 M0–M5 验收完成。
-- 服务器公网 HTTPS 部署待执行；真实 iOS/Android 实机与真实桌游试玩待完成。
-- 单副本；SQLite；无离线队列、无真钱、无充值/提现。
-- 房间 24 小时无活动自动解散；已结算/已解散房间 7 天后清理。
+### 没有域名：IP + HTTP
 
-## 文档
+适合局域网试玩或临时验证。生产环境建议补一个域名或免费 DDNS 子域名。
 
-- [文档索引](docs/README.md)
-- [产品设计](docs/产品设计.md)
-- [UI 设计规范](docs/UI设计规范.md)
-- [技术路线（Web）](docs/技术路线-Web版.md)
-- [M5 验收记录](docs/M5验收记录.md)
-- [部署运行手册](docs/部署运行手册.md)
-- [隐私与数据删除](docs/隐私与数据删除.md)
-- [Changelog](CHANGELOG.md)
+```bash
+mkdir -p /opt/monopay/{data,backups}
+cd /opt/monopay
 
-## 参与
+cp /path/to/Monopay/deploy/compose.ip.yaml compose.yaml
+cp /path/to/Monopay/deploy/.env.ip.example .env
 
-- [贡献指南](CONTRIBUTING.md)
-- [安全策略](SECURITY.md)
+sudo chown -R 1000:1000 data backups
+```
+
+编辑 `.env`：
+
+```dotenv
+PUBLIC_URL=http://203.0.113.10:3000
+APP_PORT=3000
+MONOPAY_IMAGE=ghcr.io/shanggui/monopay
+MONOPAY_TAG=v0.1.1
+```
+
+启动：
+
+```bash
+docker compose up -d --wait
+```
+
+打开 `http://203.0.113.10:3000`。
+
+> [!NOTE]
+> `PUBLIC_URL` 必须和浏览器实际访问地址一致，否则二维码和分享链接会指向错误地址。
+
+### 更新与回滚
+
+```bash
+docker compose pull
+docker compose up -d --wait
+```
+
+通过 `.env` 的 `MONOPAY_TAG` 固定版本；回滚时改回旧 tag，再执行上面两条命令。
+
+### 数据与备份
+
+- `./data`：SQLite 数据库，必须持久化。
+- `./backups`：备份目录。
+- 每日备份：
+
+```bash
+docker compose exec app node scripts/backup.mjs
+```
+
+默认保留 7 天。完整备份恢复、回滚和排障见 [部署运行手册](docs/部署运行手册.md)。
+
+> [!IMPORTANT]
+> 只运行一个 `app` 副本。房间、余额和 WebSocket 都在单进程内，使用 SQLite，不支持水平扩容。

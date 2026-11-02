@@ -30,7 +30,7 @@ echo "== create room =="
 ROOM=$(curl -fsS -X POST "$BASE/api/rooms" \
   -H 'content-type: application/json' \
   -d '{"hostIdentity":"dual","initialFunds":2000,"maxPlayers":2,"hostNickname":"smoke"}')
-ROOM_CODE=$(printf '%s' "$ROOM" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).data.roomCode))')
+ROOM_CODE=$(printf '%s' "$ROOM" | sed -n 's/.*"roomCode":"\([0-9]*\)".*/\1/p')
 [ -n "$ROOM_CODE" ]
 echo "created room $ROOM_CODE"
 
@@ -38,6 +38,8 @@ echo "== join room =="
 JOINED=$(curl -fsS -X POST "$BASE/api/rooms/$ROOM_CODE/join" \
   -H 'content-type: application/json' \
   -d '{"nickname":"smoke-player"}')
-echo "$JOINED" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s).data;console.log("joined player", d.playerId)})'
+PLAYER_ID=$(printf '%s' "$JOINED" | sed -n 's/.*"playerId":"\([^"]*\)".*/\1/p')
+[ -n "$PLAYER_ID" ]
+echo "joined player $PLAYER_ID"
 
 echo "Smoke test OK: room $ROOM_CODE"
