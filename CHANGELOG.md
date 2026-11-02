@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 — 2026-11-02
+
+### Added
+
+- GHCR 镜像同时构建 `linux/amd64` 与 `linux/arm64`（QEMU + buildx）。
+- `deploy/deploy.sh`：拉取镜像、等待健康检查、执行 smoke test。
+- `deploy/smoke.sh`：健康检查、首页、安全头、创建/加入房间。
+- `.gitattributes` 固定 shell 脚本 LF。
+
 ## 0.1.0 — 2026-11-02
 
 首个可试玩 MVP（本地验证完成，生产部署待执行）。
