@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+data
+artifacts
+pnpm-lock.yaml
+docs
+preview-v2
+prototype
+assets
+apps/server/drizzle

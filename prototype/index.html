@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Monopay · 旧视觉原型（已废弃）</title>
+  <meta name="description" content="Monopay 旧视觉原型，仅保留页面结构参考。新方向见 UI 设计规范 v2.0。">
+  <link rel="icon" href="../assets/icon-144.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg class="svg-defs" aria-hidden="true">
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+  <symbol id="i-arrow-down-left" viewBox="0 0 24 24"><path d="M17 7 7 17M16 17H7V8"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M5 6h14M7 6l-3 6h6L7 6ZM17 6l-3 6h6l-3-6Z"/><path d="M8 21h8"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.35.4.7.7 1 .3.3.7.4 1.1.4h.09v4h-.09a1.7 1.7 0 0 0-1.8.6Z"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="m3 9 9-6 9 6M5 9h14M6 9v8M10 9v8M14 9v8M18 9v8M3 21h18"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19v16H6.5A2.5 2.5 0 0 1 4 17.5v-11Z"/><path d="M4 7h15M16 12h5v4h-5a2 2 0 0 1 0-4Z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 5.5a3 3 0 0 1 0 5.8M18 14a5 5 0 0 1 3 4.6V20"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5"/><path d="M4 12h9a6 6 0 0 1 6 6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.7L20 6.8 17.2 4 4.7 16.5 4 20Z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-backspace" viewBox="0 0 24 24"><path d="M20 6H9l-6 6 6 6h11V6Z"/><path d="m12 9 4 6M16 9l-4 6"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="3"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-.8-1.6-1.2-2.8-1.2-1.5 0-2.7.8-2.7 2s1 1.7 2.8 2c1.8.3 2.7.9 2.7 2.1 0 1.2-1.2 2-2.8 2-1.3 0-2.4-.5-3-1.3M12 6.8v10.4"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<div class="board">
+  <div class="old-direction">旧视觉方向已废弃：赌场感过强。新方向是「桌游银行 · 纸卡与薄荷」，见 <a href="../docs/UI设计规范.md">UI 设计规范 v2.0</a>。本页仅保留页面结构参考。</div>
+  <div class="board-grid" aria-hidden="true"></div>
+  <div class="board-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#screens" aria-label="Monopay 桌游账房">
+      <img class="brand-icon" src="../assets/icon-144.png" alt="">
+      <span class="brand-text"><strong>Monopay</strong><small>桌游账房</small></span>
+    </a>
+    <div class="top-meta">
+      <span>UI STUDY / 02</span>
+      <span class="top-dot"></span>
+      <span>2026.11</span>
+    </div>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="kicker"><span class="kicker-line"></span>VISUAL DIRECTIONS / 04</p>
+      <h1 id="hero-title">账房<span>四色</span></h1>
+      <p class="hero-lede">一张桌布，一本账，四套气质。<br>把桌游里的钱，记清楚。</p>
+      <div class="hero-tags" aria-label="视觉关键词">
+        <span>墨绿账房</span>
+        <span>夜航蓝</span>
+        <span>酒红沙龙</span>
+        <span>奶油票据</span>
+      </div>
+    </div>
+
+    <aside class="hero-note">
+      <p class="note-label">WHY THIS / 推荐理由</p>
+      <ul>
+        <li><span>01</span>和 icon 同一套材质，不另造品牌。</li>
+        <li><span>02</span>桌游桌面上的深色底，奶油卡更好扫读。</li>
+        <li><span>03</span>账本语言天然适合“银行 / 流水 / 对账”。</li>
+        <li><span>04</span>不靠 3D 和动效堆高级感，实现便宜。</li>
+      </ul>
+      <p class="note-sign">FOUR ROOMS · V1.1</p>
+    </aside>
+
+    <div class="hero-mark" aria-hidden="true">M</div>
+  </section>
+
+  <section class="theme-picker" aria-labelledby="theme-picker-title">
+    <div class="theme-picker-head">
+      <div>
+        <p class="kicker"><span class="kicker-line"></span>THEMES / 04</p>
+        <h2 id="theme-picker-title">先选一套气质</h2>
+      </div>
+      <div class="theme-picker-aside">
+        <p>默认建议 <strong>墨绿账房</strong>；其余主题在「设置 → 外观」里随时切换。</p>
+        <p class="theme-current">当前预览：<span id="currentTheme">墨绿账房</span></p>
+      </div>
+    </div>
+
+    <div class="theme-grid" role="group" aria-label="主题选择">
+      <button class="theme-card is-active" type="button" data-set-theme="ledger" aria-pressed="true">
+        <span class="theme-mini" aria-hidden="true">
+          <span class="theme-mini-top"><i></i><i></i><i></i></span>
+          <span class="theme-mini-card"><b>2,450</b><em>M</em><i></i></span>
+          <span class="theme-mini-line"></span>
+          <span class="theme-mini-line short"></span>
+        </span>
+        <span class="theme-card-text"><strong>墨绿账房</strong><small>深绿桌布 · 奶油账纸 · 黄铜</small></span>
+        <span class="theme-badge">建议默认</span>
+      </button>
+
+      <button class="theme-card" type="button" data-set-theme="midnight" aria-pressed="false">
+        <span class="theme-mini" aria-hidden="true">
+          <span class="theme-mini-top"><i></i><i></i><i></i></span>
+          <span class="theme-mini-card"><b>2,450</b><em>M</em><i></i></span>
+          <span class="theme-mini-line"></span>
+          <span class="theme-mini-line short"></span>
+        </span>
+        <span class="theme-card-text"><strong>夜航蓝</strong><small>深海军蓝 · 冷雾账纸 · 香槟</small></span>
+      </button>
+
+      <button class="theme-card" type="button" data-set-theme="wine" aria-pressed="false">
+        <span class="theme-mini" aria-hidden="true">
+          <span class="theme-mini-top"><i></i><i></i><i></i></span>
+          <span class="theme-mini-card"><b>2,450</b><em>M</em><i></i></span>
+          <span class="theme-mini-line"></span>
+          <span class="theme-mini-line short"></span>
+        </span>
+        <span class="theme-card-text"><strong>酒红沙龙</strong><small>酒红桌布 · 羊皮账纸 · 古金</small></span>
+      </button>
+
+      <button class="theme-card" type="button" data-set-theme="paper" aria-pressed="false">
+        <span class="theme-mini" aria-hidden="true">
+          <span class="theme-mini-top"><i></i><i></i><i></i></span>
+          <span class="theme-mini-card"><b>2,450</b><em>M</em><i></i></span>
+          <span class="theme-mini-line"></span>
+          <span class="theme-mini-line short"></span>
+        </span>
+        <span class="theme-card-text"><strong>奶油票据</strong><small>日光纸面 · 墨绿字 · 赭金</small></span>
+      </button>
+    </div>
+  </section>
+
+  <main>
+    <section class="section" id="screens">
+      <div class="section-head">
+        <div>
+          <p class="kicker">04 SCREENS</p>
+          <h2>关键页面</h2>
+        </div>
+        <p class="section-note">390 × 844 · 付款键盘可点击试用</p>
+      </div>
+
+      <div class="gallery">
+
+        <!-- 01 / LEDGER -->
+        <article class="screen-block">
+          <header class="screen-caption">
+            <span class="screen-no">01</span>
+            <div>
+              <h3>账房 <span>MY LEDGER</span></h3>
+              <p>余额是唯一主角；付款在拇指区。</p>
+            </div>
+          </header>
+
+          <div class="phone" data-theme="ledger">
+            <div class="phone-screen">
+              <div class="dynamic-island" aria-hidden="true"></div>
+              <div class="statusbar"><span>9:41</span><span class="status-right"><span class="net">5G</span><span class="battery"><i></i></span></span></div>
+              <div class="app">
+                <header class="app-head">
+                  <div class="app-brand"><span class="app-brand-mark">M</span><span>账房</span></div>
+                  <div class="app-head-right">
+                    <span class="room-code">672 418</span>
+                    <span class="live-pill"><i></i>对局中</span>
+                    <span class="avatar avatar--me">杰</span>
+                  </div>
+                </header>
+
+                <div class="screen-body">
+                  <section class="balance-card" aria-label="我的余额">
+                    <div class="balance-copy">
+                      <p class="eyebrow">MY LEDGER · 我的余额</p>
+                      <p class="balance-line"><span class="balance-amount" data-count="2450">2,450</span><span class="balance-unit">M</span></p>
+                      <p class="balance-sub">现金 · 本局可用</p>
+                    </div>
+                    <div class="coin coin--card" aria-hidden="true"><span>M</span></div>
+                    <div class="balance-foot">
+                      <span>仅本局有效 · 不兑换现金</span>
+                      <button class="link-btn" type="button">明细 <svg class="icon"><use href="#i-arrow-right"/></svg></button>
+                    </div>
+                  </section>
+
+                  <div class="quick-actions">
+                    <button class="btn btn--gold" type="button"><svg class="icon"><use href="#i-arrow-up-right"/></svg><span>付款</span></button>
+                    <button class="btn btn--ghost" type="button"><svg class="icon"><use href="#i-receipt"/></svg><span>流水</span></button>
+                    <button class="btn btn--ghost btn--compact" type="button"><svg class="icon"><use href="#i-bank"/></svg><span>银行</span></button>
+                  </div>
+
+                  <section class="panel">
+                    <div class="panel-head"><h2>桌上的人</h2><span>4 人 · 双身份</span></div>
+                    <div class="player-list">
+                      <div class="player-row">
+                        <span class="avatar avatar--sand">美</span>
+                        <div class="player-info"><span class="player-name">小美 <span class="tag tag--gold">房主</span></span><span class="player-meta">银行 + 玩家</span></div>
+                        <span class="player-balance">3,200<small>M</small></span>
+                      </div>
+                      <div class="player-row is-me">
+                        <span class="avatar avatar--jade">杰</span>
+                        <div class="player-info"><span class="player-name">阿杰 <span class="tag tag--me">我</span></span><span class="player-meta">玩家</span></div>
+                        <span class="player-balance">2,450<small>M</small></span>
+                      </div>
+                      <div class="player-row">
+                        <span class="avatar avatar--rose">鹏</span>
+                        <div class="player-info"><span class="player-name">大鹏 <span class="stamp stamp--tiny">破产</span></span><span class="player-meta">不能主动付款</span></div>
+                        <span class="player-balance">180<small>M</small></span>
+                      </div>
+                      <div class="player-row">
+                        <span class="avatar avatar--blue">林</span>
+                        <div class="player-info"><span class="player-name">林林</span><span class="player-meta">玩家</span></div>
+                        <span class="player-balance">1,120<small>M</small></span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="panel panel--ledger">
+                    <div class="panel-head"><h2>最近流水</h2><button class="link-btn" type="button">全部 <svg class="icon"><use href="#i-arrow-right"/></svg></button></div>
+                    <div class="ledger-list">
+                      <div class="ledger-row">
+                        <span class="ledger-icon ledger-icon--out"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                        <div class="ledger-info"><span class="ledger-title">租金 · 付给小美</span><span class="ledger-meta">今天 20:14 · 我</span></div>
+                        <span class="ledger-amount is-out">−200<small>M</small></span>
+                      </div>
+                      <div class="ledger-row">
+                        <span class="ledger-icon ledger-icon--in"><svg class="icon"><use href="#i-arrow-down-left"/></svg></span>
+                        <div class="ledger-info"><span class="ledger-title">工资 · 银行</span><span class="ledger-meta">今天 19:58 · 银行</span></div>
+                        <span class="ledger-amount is-in">+200<small>M</small></span>
+                      </div>
+                      <div class="ledger-row">
+                        <span class="ledger-icon ledger-icon--in"><svg class="icon"><use href="#i-coin"/></svg></span>
+                        <div class="ledger-info"><span class="ledger-title">机会卡 · 银行</span><span class="ledger-meta">今天 19:41 · 银行</span></div>
+                        <span class="ledger-amount is-in">+150<small>M</small></span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div class="sync-line"><span></span>账目实时同步 · 刚刚</div>
+                </div>
+
+                <nav class="tabbar" aria-label="主导航">
+                  <button class="tab is-active" type="button"><svg class="icon"><use href="#i-wallet"/></svg><span>账房</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-receipt"/></svg><span>流水</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-scale"/></svg><span>结算</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-settings"/></svg><span>设置</span></button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 02 / PAYMENT -->
+        <article class="screen-block">
+          <header class="screen-caption">
+            <span class="screen-no">02</span>
+            <div>
+              <h3>付款 <span>PAYMENT SHEET</span></h3>
+              <p>先选人，再输钱；确认只出现一次。</p>
+            </div>
+          </header>
+
+          <div class="phone" data-theme="ledger">
+            <div class="phone-screen">
+              <div class="dynamic-island" aria-hidden="true"></div>
+              <div class="statusbar"><span>9:41</span><span class="status-right"><span class="net">5G</span><span class="battery"><i></i></span></span></div>
+              <div class="app app--sheet">
+                <div class="ghost-screen" aria-hidden="true">
+                  <div class="ghost-head"><span class="ghost-pill"></span><span class="ghost-avatar"></span></div>
+                  <div class="ghost-card"><span></span><strong></strong><i></i></div>
+                  <div class="ghost-actions"><span></span><span></span><span></span></div>
+                  <div class="ghost-panel"><b></b><b></b><b></b><b></b></div>
+                </div>
+                <div class="sheet-scrim" aria-hidden="true"></div>
+
+                <section class="sheet" aria-label="付款">
+                  <div class="grabber" aria-hidden="true"></div>
+                  <header class="sheet-head">
+                    <div><h2>付款</h2><p>从「我的余额」支出</p></div>
+                    <button class="sheet-close" type="button" aria-label="关闭付款"><svg class="icon"><use href="#i-close"/></svg></button>
+                  </header>
+
+                  <div class="sheet-body">
+                    <p class="field-label">付给</p>
+                    <div class="recipient-row" id="recipients">
+                      <button class="recipient is-selected" type="button" data-name="小美"><span class="avatar avatar--sand">美</span><span>小美</span></button>
+                      <button class="recipient" type="button" data-name="大鹏"><span class="avatar avatar--rose">鹏</span><span>大鹏</span></button>
+                      <button class="recipient" type="button" data-name="林林"><span class="avatar avatar--blue">林</span><span>林林</span></button>
+                      <button class="recipient" type="button" data-name="银行"><span class="avatar avatar--bank"><svg class="icon"><use href="#i-bank"/></svg></span><span>银行</span></button>
+                    </div>
+
+                    <div class="amount-block">
+                      <p class="field-label">金额</p>
+                      <p class="amount-display"><span class="pay-amount" id="payAmount" aria-live="polite">200</span><span class="amount-unit">M</span></p>
+                    </div>
+
+                    <div class="quick-row" id="quickAmounts">
+                      <button type="button" data-amount="50">50</button>
+                      <button type="button" data-amount="100">100</button>
+                      <button type="button" data-amount="200" class="is-selected">200</button>
+                      <button type="button" data-amount="500">500</button>
+                    </div>
+
+                    <div class="keypad" id="keypad" aria-label="金额键盘">
+                      <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+                      <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+                      <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+                      <button type="button" data-key="00">00</button><button type="button" data-key="0">0</button><button type="button" data-key="back" aria-label="退格"><svg class="icon"><use href="#i-backspace"/></svg></button>
+                    </div>
+
+                    <p class="field-label field-label--inline">类别</p>
+                    <div class="chips" id="categories">
+                      <button class="chip is-selected" type="button">租金</button>
+                      <button class="chip" type="button">过路费</button>
+                      <button class="chip" type="button">机会卡</button>
+                      <button class="chip" type="button">罚款</button>
+                      <button class="chip" type="button">其他</button>
+                    </div>
+
+                    <button class="note-row" type="button"><svg class="icon"><use href="#i-edit"/></svg>加备注（可选）</button>
+                  </div>
+
+                  <footer class="sheet-foot">
+                    <button class="btn btn--gold btn--block" id="payConfirm" type="button">确认支付 200 M</button>
+                    <p class="foot-note" id="payHint">支付后余额 2,250 M · 即时到账</p>
+                  </footer>
+                </section>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 03 / BANK -->
+        <article class="screen-block">
+          <header class="screen-caption">
+            <span class="screen-no">03</span>
+            <div>
+              <h3>银行 <span>BANK CONSOLE</span></h3>
+              <p>发行、回收、纠错；银行不参与排名。</p>
+            </div>
+          </header>
+
+          <div class="phone" data-theme="ledger">
+            <div class="phone-screen">
+              <div class="dynamic-island" aria-hidden="true"></div>
+              <div class="statusbar"><span>9:41</span><span class="status-right"><span class="net">5G</span><span class="battery"><i></i></span></span></div>
+              <div class="app">
+                <header class="app-head app-head--page">
+                  <button class="back-btn" type="button" aria-label="返回"><svg class="icon"><use href="#i-chevron-left"/></svg></button>
+                  <div class="page-title">银行账台</div>
+                  <button class="switch-btn" type="button">切到玩家</button>
+                </header>
+
+                <div class="screen-body">
+                  <section class="bank-hero">
+                    <div class="bank-hero-top">
+                      <p class="eyebrow eyebrow--gold">BANK · 银行</p>
+                      <span class="bank-badge">房主</span>
+                    </div>
+                    <div class="bank-stats">
+                      <div><span>本局发行</span><strong>8,400<small>M</small></strong></div>
+                      <div><span>已回收</span><strong>2,150<small>M</small></strong></div>
+                      <div><span>净投放</span><strong>6,250<small>M</small></strong></div>
+                    </div>
+                    <p class="bank-note">银行余额无限 · 不参与排名</p>
+                  </section>
+
+                  <div class="bank-actions">
+                    <button class="bank-action is-primary" type="button"><span class="bank-action-icon"><svg class="icon"><use href="#i-coin"/></svg></span><span><strong>发工资</strong><small>单人 · 默认 200 M</small></span></button>
+                    <button class="bank-action" type="button"><span class="bank-action-icon"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span><span><strong>银行付款</strong><small>发行给玩家</small></span></button>
+                    <button class="bank-action" type="button"><span class="bank-action-icon"><svg class="icon"><use href="#i-arrow-down-left"/></svg></span><span><strong>银行收款</strong><small>从玩家回收</small></span></button>
+                    <button class="bank-action" type="button"><span class="bank-action-icon"><svg class="icon"><use href="#i-undo"/></svg></span><span><strong>冲正 / 矫正</strong><small>保留原流水</small></span></button>
+                  </div>
+
+                  <div class="bank-tip"><svg class="icon"><use href="#i-clock"/></svg><span>工资直接入账，不再确认；退款由收款方发起。</span></div>
+
+                  <section class="panel">
+                    <div class="panel-head"><h2>桌上的人</h2><span>工资默认 200 M</span></div>
+                    <div class="player-list player-list--bank">
+                      <div class="player-row">
+                        <span class="avatar avatar--sand">美</span>
+                        <div class="player-info"><span class="player-name">小美</span><span class="player-meta">余额 3,200 M</span></div>
+                        <button class="salary-btn" type="button">发 200</button>
+                      </div>
+                      <div class="player-row">
+                        <span class="avatar avatar--jade">杰</span>
+                        <div class="player-info"><span class="player-name">阿杰</span><span class="player-meta">余额 2,450 M</span></div>
+                        <button class="salary-btn" type="button">发 200</button>
+                      </div>
+                      <div class="player-row">
+                        <span class="avatar avatar--rose">鹏</span>
+                        <div class="player-info"><span class="player-name">大鹏 <span class="stamp stamp--tiny">破产</span></span><span class="player-meta">余额 180 M</span></div>
+                        <button class="salary-btn" type="button">发 200</button>
+                      </div>
+                      <div class="player-row">
+                        <span class="avatar avatar--blue">林</span>
+                        <div class="player-info"><span class="player-name">林林</span><span class="player-meta">余额 1,120 M</span></div>
+                        <button class="salary-btn" type="button">发 200</button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="panel panel--ledger">
+                    <div class="panel-head"><h2>银行流水</h2><button class="link-btn" type="button">全部 <svg class="icon"><use href="#i-arrow-right"/></svg></button></div>
+                    <div class="ledger-list">
+                      <div class="ledger-row">
+                        <span class="ledger-icon ledger-icon--out"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                        <div class="ledger-info"><span class="ledger-title">工资 · 银行 → 阿杰</span><span class="ledger-meta">今天 19:58 · 房主</span></div>
+                        <span class="ledger-amount is-bank">200<small>M</small></span>
+                      </div>
+                      <div class="ledger-row">
+                        <span class="ledger-icon ledger-icon--in"><svg class="icon"><use href="#i-arrow-down-left"/></svg></span>
+                        <div class="ledger-info"><span class="ledger-title">收款 · 小美 → 银行</span><span class="ledger-meta">今天 19:36 · 房主</span></div>
+                        <span class="ledger-amount is-in">+300<small>M</small></span>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+
+                <nav class="tabbar" aria-label="银行导航">
+                  <button class="tab is-active" type="button"><svg class="icon"><use href="#i-bank"/></svg><span>银行</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-receipt"/></svg><span>流水</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-scale"/></svg><span>结算</span></button>
+                  <button class="tab" type="button"><svg class="icon"><use href="#i-settings"/></svg><span>设置</span></button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- 04 / SETTLEMENT -->
+        <article class="screen-block">
+          <header class="screen-caption">
+            <span class="screen-no">04</span>
+            <div>
+              <h3>对账 <span>SETTLEMENT</span></h3>
+              <p>净资产排名 + 资产/负债；先对平，再收桌。</p>
+            </div>
+          </header>
+
+          <div class="phone" data-theme="ledger">
+            <div class="phone-screen">
+              <div class="dynamic-island" aria-hidden="true"></div>
+              <div class="statusbar"><span>9:41</span><span class="status-right"><span class="net">5G</span><span class="battery"><i></i></span></span></div>
+              <div class="app">
+                <header class="app-head app-head--page">
+                  <button class="back-btn" type="button" aria-label="返回"><svg class="icon"><use href="#i-chevron-left"/></svg></button>
+                  <div class="page-title">对账</div>
+                  <span class="stamp">结算中</span>
+                </header>
+
+                <div class="screen-body settlement-body">
+                  <div class="settle-intro">
+                    <p class="kicker">SETTLE THE TABLE</p>
+                    <h2>把账对平，<br>再收桌。</h2>
+                    <p>资产估值和负债未填时按 0 计。</p>
+                  </div>
+
+                  <section class="rank-panel" aria-label="净资产排名">
+                    <div class="rank-head"><span>净资产排名</span><span>4 人</span></div>
+                    <div class="rank-row is-first">
+                      <span class="rank-no">01</span>
+                      <span class="avatar avatar--sand">美</span>
+                      <div class="rank-info"><span class="rank-name">小美 <span class="tag tag--gold">房主</span></span><span class="rank-meta">现金 3,200 · 资产 1,450</span></div>
+                      <span class="rank-value">4,650<small>M</small></span>
+                    </div>
+                    <div class="rank-row">
+                      <span class="rank-no">02</span>
+                      <span class="avatar avatar--jade">杰</span>
+                      <div class="rank-info"><span class="rank-name">阿杰 <span class="tag tag--me">我</span></span><span class="rank-meta">现金 2,450 · 资产 750</span></div>
+                      <span class="rank-value">3,200<small>M</small></span>
+                    </div>
+                    <div class="rank-row">
+                      <span class="rank-no">03</span>
+                      <span class="avatar avatar--blue">林</span>
+                      <div class="rank-info"><span class="rank-name">林林</span><span class="rank-meta">现金 1,120 · 资产 980</span></div>
+                      <span class="rank-value">2,100<small>M</small></span>
+                    </div>
+                    <div class="rank-row">
+                      <span class="rank-no">04</span>
+                      <span class="avatar avatar--rose">鹏</span>
+                      <div class="rank-info"><span class="rank-name">大鹏 <span class="stamp stamp--tiny">破产</span></span><span class="rank-meta">现金 180 · 资产 620 · 负债 900</span></div>
+                      <span class="rank-value is-negative">−100<small>M</small></span>
+                    </div>
+                  </section>
+
+                  <section class="detail-card">
+                    <div class="detail-head">
+                      <div><p class="eyebrow">PLAYER · 明细</p><h3>小美</h3></div>
+                      <span class="net-worth">4,650<small>M</small></span>
+                    </div>
+                    <div class="detail-lines">
+                      <div class="detail-line"><span>现金</span><strong>3,200<small>M</small></strong></div>
+                      <div class="detail-line is-editable"><span>资产估值 <i>可修改</i></span><strong>1,450<small>M</small></strong><button class="line-edit" type="button" aria-label="修改资产估值"><svg class="icon"><use href="#i-edit"/></svg></button></div>
+                      <div class="detail-line"><span>负债</span><strong>0<small>M</small></strong><button class="line-edit" type="button" aria-label="修改负债"><svg class="icon"><use href="#i-edit"/></svg></button></div>
+                    </div>
+                    <div class="formula">净资产 = 现金 + 资产估值 − 负债</div>
+                  </section>
+
+                  <section class="settle-guide" aria-label="对账说明">
+                    <div class="guide-head"><p class="eyebrow">NOTES · 对账说明</p><span>结算中仍可退款/冲正</span></div>
+                    <div class="guide-row"><span>资产</span><p>房产、股票等按可折算现金填写。</p></div>
+                    <div class="guide-row"><span>负债</span><p>贷款、抵押等未还金额，不填负数。</p></div>
+                    <div class="guide-row"><span>修正</span><p>房主可代填或修正，操作会记录。</p></div>
+                  </section>
+
+                  <footer class="settle-foot">
+                    <div class="settle-actions">
+                      <button class="btn btn--ghost" type="button">返回对局</button>
+                      <button class="btn btn--gold" type="button">确认结算</button>
+                    </div>
+                    <p>确认后只读 · 仍可查看流水</p>
+                  </footer>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="section section--system">
+      <div class="section-head">
+        <div>
+          <p class="kicker">SYSTEM</p>
+          <h2>三条约束</h2>
+        </div>
+        <p class="section-note">风格不是皮肤，是取舍</p>
+      </div>
+
+      <div class="system-grid">
+        <article class="system-card">
+          <p class="system-no">01 / MATERIAL</p>
+          <h3>三种材质，各司其职</h3>
+          <div class="material-list">
+            <div class="material-row"><i class="material-chip material-chip--felt"></i><span><strong>桌布</strong><small>背景 · 沉浸</small></span></div>
+            <div class="material-row"><i class="material-chip material-chip--paper"></i><span><strong>账纸</strong><small>读数 · 操作</small></span></div>
+            <div class="material-row"><i class="material-chip material-chip--brass"></i><span><strong>黄铜</strong><small>金额 · 主操作</small></span></div>
+          </div>
+          <p class="system-copy">金色面积不超过一屏的 8%；红色只做警示。</p>
+        </article>
+
+        <article class="system-card">
+          <p class="system-no">02 / TYPE</p>
+          <h3>金额是主角</h3>
+          <div class="type-demo"><span class="type-amount">2,450</span><span class="type-unit">M</span></div>
+          <p class="type-label">MY BALANCE · 我的余额</p>
+          <div class="type-scale">
+            <span><strong>44–52</strong> 余额</span>
+            <span><strong>28–34</strong> 标题</span>
+            <span><strong>14–15</strong> 正文</span>
+            <span><strong>11–12</strong> 辅助</span>
+          </div>
+          <p class="system-copy">衬线只给大标题；金额用等宽数字，单位永远小两级。</p>
+        </article>
+
+        <article class="system-card system-card--copy">
+          <p class="system-no">03 / VOICE</p>
+          <h3>像账房，不像客服</h3>
+          <div class="copy-list">
+            <div class="copy-row"><span>通用</span><del>暂无数据</del><ins>还没有流水。第一笔交易会记在这里。</ins></div>
+            <div class="copy-row"><span>通用</span><del>支付成功</del><ins>已付 200 M 给小美。</ins></div>
+            <div class="copy-row"><span>通用</span><del>操作失败</del><ins>余额不足。先收款/抵押，再付这一笔。</ins></div>
+          </div>
+          <p class="system-copy">短、准、有一点账房味；不卖萌，不用感叹号。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>MONOPAY · THE LEDGER ROOM</span>
+    <span>只接管钱，不接管棋盘。</span>
+    <a href="../docs/UI设计规范.md">阅读设计规范 →</a>
+  </footer>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
