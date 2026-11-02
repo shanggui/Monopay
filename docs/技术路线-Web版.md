@@ -14,7 +14,7 @@
 
 - **客户端**：移动优先的 Web App（Vue 3 + Vite + TypeScript + Vant 4 + Tailwind CSS + Motion One）。
 - **服务端**：Node.js 24 LTS + TypeScript + Fastify + WebSocket + SQLite（已有 Postgres/MySQL 也可替换）。
-- **部署**：现有服务器 + Nginx/Caddy + HTTPS；Docker Compose 或 systemd。
+- **部署**：Docker Compose + 现有 Nginx/Traefik 等反向代理；TLS 在反代终止。
 - **房间**：服务端创建；房主/玩家都用浏览器；扫码/点链接加入。
 - **身份**：房号 + `playerToken`；房主 `hostToken`；不需要微信登录/openid。
 - **实时**：WebSocket 推送；断线重连 + 快照补偿。
@@ -53,7 +53,7 @@
                            │ HTTPS / WSS
 ┌──────────────────────────▼───────────────────────────┐
 │  已有服务器                                            │
-│  ├─ Nginx/Caddy（HTTPS、静态资源、反代）               │
+│  ├─ Nginx/Traefik（HTTPS、静态资源、反代）              │
 │  ├─ Node.js + Fastify（REST + WebSocket）              │
 │  ├─ SQLite/Postgres（房间、玩家、流水、结算）          │
 │  └─ 备份/日志                                          │
@@ -104,7 +104,7 @@
 | ORM | Drizzle 或 手写 SQL + 迁移 | 轻量、可控 | Prisma |
 | 校验 | Zod | 前后端共享 schema | Yup |
 | 构建 | pnpm + Vite + esbuild/tsup | 快 | npm/yarn |
-| 部署 | Docker Compose + Caddy/Nginx | 一键、HTTPS | systemd + Nginx |
+| 部署 | Docker Compose + 现有反代 | 一键、HTTPS | systemd + Nginx |
 | 测试 | Vitest + Fastify inject + Playwright | 单元/接口/E2E | Jest |
 
 ### 3.1 为什么 REST + WebSocket，而不是全 WebSocket
@@ -160,9 +160,8 @@ monopay/
 │  ├─ ledger-core/            # 纯 TS：转账/退款/冲正/结算规则
 │  └─ shared/                 # 类型、Zod schema、错误码
 ├─ deploy/
-│  ├─ docker-compose.yml
-│  ├─ Caddyfile
-│  └─ nginx.conf
+│  ├─ compose.yaml
+│  └─ .env.example
 ├─ scripts/
 │  ├─ backup.sh
 │  └─ consistency-100.ts
@@ -518,8 +517,8 @@ confirm: 房主确认
 
 - Linux（Ubuntu 22.04+）；Docker Engine + Compose；SQLite。
 - 1 核 1G 足够几桌人；已有服务器直接用。
-- 域名 + HTTPS 证书（Caddy 自动/Let's Encrypt）；或现有 Nginx + certbot。
-- 端口：80/443；app 只监听容器内 3000，由反代转发。
+- 可选域名 + HTTPS 证书；TLS 由现有 Nginx/Traefik 终止，证书不放进 app 容器。
+- 端口：app 默认绑定 `127.0.0.1:3000`，由反代转发；无域名时绑定 `0.0.0.0:3000`。
 - Node.js 24 LTS 只用于本地开发/构建；服务器不需要装 Node。
 
 ### 11.2 Docker Compose（推荐）
@@ -531,32 +530,25 @@ services:
   app:
     image: ghcr.io/OWNER/monopay:${MONOPAY_TAG:-latest}
     environment:
-      - PUBLIC_URL=https://monopay.example.com
-      - DB_PATH=/data/monopay.db
+      PUBLIC_URL: ${PUBLIC_URL}
+      DB_PATH: /data/monopay.db
+      TRUST_PROXY: 'true'
+    ports:
+      - '127.0.0.1:3000:3000'
     volumes:
       - ./data:/data
+      - ./backups:/backup
     restart: unless-stopped
-  caddy:
-    image: caddy:2
-    ports: ["80:80", "443:443"]
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-    depends_on: [app]
-
-volumes:
-  caddy_data:
 ```
 
-Caddyfile：
+复制 `compose.yaml` + `.env.example` 为 `.env`，改 `PUBLIC_URL` / `MONOPAY_TAG`，然后：
 
-```text
-monopay.example.com {
-  reverse_proxy app:3000
-}
+```bash
+docker compose pull
+docker compose up -d --wait
 ```
 
-首次上线：`docker compose pull && docker compose up -d`。完整 Dockerfile、GHCR 工作流、权限与回滚见 [实现与部署方案](实现与部署方案.md)。
+反向代理把 HTTPS 转发到 `127.0.0.1:3000`；完整步骤见 [部署运行手册](部署运行手册.md)。
 
 ### 11.3 裸机
 

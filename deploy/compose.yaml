@@ -19,17 +19,17 @@ services:
         max-size: '10m'
         max-file: '3'
     environment:
-      PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL is required}
+      PUBLIC_URL: '${PUBLIC_URL:?PUBLIC_URL is required}'
       DB_PATH: /data/monopay.db
       BACKUP_DIR: /backup
-      TRUST_PROXY: 'true'
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      APP_VERSION: ${MONOPAY_TAG:-dev}
+      TRUST_PROXY: '${TRUST_PROXY:-false}'
+      LOG_LEVEL: '${LOG_LEVEL:-info}'
+      APP_VERSION: '${MONOPAY_TAG:-dev}'
+    ports:
+      - '${BIND_ADDR:-127.0.0.1}:${APP_PORT:-3000}:3000'
     volumes:
       - ./data:/data
       - ./backups:/backup
-    expose:
-      - '3000'
     healthcheck:
       test:
         - CMD
@@ -40,29 +40,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    stop_grace_period: 20s
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '3'
-    ports:
-      - '80:80'
-      - '443:443'
-    environment:
-      DOMAIN: ${DOMAIN:?DOMAIN is required}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      app:
-        condition: service_healthy
-
-volumes:
-  caddy_data:
-  caddy_config:

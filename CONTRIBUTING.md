@@ -71,9 +71,9 @@ chore: ...
 
 改 `deploy/` 时同时检查：
 
-- 有域名版 `compose.yaml` + `Caddyfile`
-- 无域名版 `compose.ip.yaml`
-- `docs/部署运行手册.md`
-- `deploy/smoke.sh` 仍能通过
+- `compose.yaml` + `.env.example`
+- `docs/部署运行手册.md` 的命令仍可执行
+- 反向代理 WebSocket 说明仍正确（Upgrade / Connection）
+- 单副本约束不能改：SQLite + 进程内 WebSocket，不支持多 app 副本。
 
-单副本约束不能改：SQLite + 进程内 WebSocket，不支持多 app 副本。
+app 容器只提供 HTTP 3000；TLS 由反向代理终止，不要把证书塞进 app 容器。

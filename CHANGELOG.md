@@ -8,6 +8,7 @@
 - README 改为“产品/截图/快速开始/架构/部署/文档”结构，里程碑细节移到验收记录。
 - 移除未使用的 Vant、Tailwind、`unplugin-vue-components` 依赖与构建插件。
 - 新增文档索引、贡献指南、安全策略、EditorConfig 和 Prettier 忽略规则。
+- 部署收口为 app-only Compose + 可选反向代理；移除 Caddy、`compose.ip.yaml`、`deploy.sh`、`smoke.sh`，镜像保持公开。
 
 ## 0.1.1 — 2026-11-02
 
