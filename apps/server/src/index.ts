@@ -1,7 +1,7 @@
 import { buildApp } from './app'
 import { env } from './env'
 
-const app = buildApp()
+const app = await buildApp()
 
 async function shutdown(signal: string): Promise<void> {
   app.log.info({ signal }, 'shutting down')

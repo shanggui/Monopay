@@ -5,8 +5,13 @@ import { serviceName } from '@monopay/shared'
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { ZodError } from 'zod'
 import { checkDatabase, closeDatabase, initializeMeta, runMigrations } from './db'
 import { env } from './env'
+import { AppError } from './lib/errors'
+import { registerRoomRoutes } from './routes/rooms'
+import { expireStaleRooms } from './rooms/service'
+import { registerWebSocket } from './ws'
 
 export interface AppMetaData {
   name: string
@@ -14,14 +19,27 @@ export interface AppMetaData {
   initializedAt: string
 }
 
-export function buildApp(): FastifyInstance {
+export async function buildApp(): Promise<FastifyInstance> {
   runMigrations()
   const initializedAt = initializeMeta()
+  expireStaleRooms()
 
   const app = Fastify({
     logger: env.NODE_ENV === 'test' ? false : { level: env.LOG_LEVEL },
     trustProxy: env.TRUST_PROXY,
   })
+
+  const expiryTimer = setInterval(
+    () => {
+      try {
+        expireStaleRooms()
+      } catch (error) {
+        app.log.error(error, 'room expiry job failed')
+      }
+    },
+    60 * 60 * 1_000,
+  )
+  expiryTimer.unref()
 
   app.register(helmet, {
     contentSecurityPolicy: false,
@@ -63,10 +81,12 @@ export function buildApp(): FastifyInstance {
     return { ok: true, data, serverTime: Date.now() }
   })
 
+  await registerWebSocket(app)
+  registerRoomRoutes(app)
+
   if (existsSync(join(env.WEB_DIST, 'index.html'))) {
     app.register(fastifyStatic, {
       root: env.WEB_DIST,
-      wildcard: false,
     })
   }
 
@@ -77,6 +97,7 @@ export function buildApp(): FastifyInstance {
       url.startsWith('/api') ||
       url.startsWith('/healthz') ||
       url.startsWith('/readyz') ||
+      url.startsWith('/ws') ||
       !existsSync(join(env.WEB_DIST, 'index.html'))
     ) {
       return reply.code(404).send({
@@ -90,6 +111,26 @@ export function buildApp(): FastifyInstance {
   })
 
   app.setErrorHandler((error: FastifyError, request, reply) => {
+    if (error instanceof AppError) {
+      return reply.code(error.statusCode).send({
+        ok: false,
+        error: { code: error.code, message: error.message },
+        serverTime: Date.now(),
+      })
+    }
+
+    if (error instanceof ZodError) {
+      return reply.code(400).send({
+        ok: false,
+        error: {
+          code: 'INVALID_ARGUMENT',
+          message: '请求参数不正确',
+          details: error.flatten(),
+        },
+        serverTime: Date.now(),
+      })
+    }
+
     request.log.error(error)
     const statusCode = error.statusCode ?? 500
     return reply.code(statusCode).send({
@@ -103,6 +144,7 @@ export function buildApp(): FastifyInstance {
   })
 
   app.addHook('onClose', async () => {
+    clearInterval(expiryTimer)
     closeDatabase()
   })
 

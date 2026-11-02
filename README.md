@@ -2,7 +2,7 @@
 
 > 只接管钱，不接管棋盘。2–6 人桌游的电子银行账本。
 
-当前进度：**M0 工程与部署闭环**。页面是工程验收页，房间、付款、账本尚未实现。
+当前进度：**M1 房间生命周期（本地）**。可以创建/加入房间、查看大厅和二维码、WebSocket 实时更新；付款和账本尚未实现。服务器部署按计划留到最后验证。
 
 ## 技术栈
 
@@ -32,9 +32,16 @@ Vite 会把 `/healthz`、`/readyz`、`/api`、`/ws` 代理到 3000 端口。
 
 ```bash
 pnpm lint
+pnpm format:check
 pnpm typecheck
 pnpm test
 pnpm build
+```
+
+浏览器流程（需要先启动服务）：
+
+```bash
+pnpm flow:m1
 ```
 
 生产构建后可直接跑：
@@ -114,7 +121,19 @@ docker compose up -d
 > 如果服务器已有 Nginx 且 80/443 被占用，删掉 compose 里的 `caddy` 服务，把 app 改成
 > `ports: ["127.0.0.1:3000:3000"]`，由现有 Nginx 反代。
 
-## 当前 M0 验收
+## M1 房间生命周期（本地完成）
+
+- 创建房间：银行-only / 双身份、初始资金、人数、工资、大额阈值、音效。
+- 加入房间：6 位房号、昵称、头像；重复凭证按重连处理。
+- 大厅：房号、二维码、复制链接、玩家列表、房主/银行标识、实时连接状态。
+- 服务端：`POST /api/rooms`、`POST /api/rooms/:code/join`、`GET /api/rooms/:code/snapshot`、`POST /api/rooms/:code/actions/dissolve`。
+- WebSocket：首帧 `auth` 鉴权、`ready` / `player_joined` / `room_updated`、断线重连。
+- 数据库：`rooms`、`players`、`room_events`，Drizzle 迁移 `0001`。
+- 24 小时无活动房间自动标记解散。
+
+详见 [M1 验收记录](docs/M1验收记录.md)。
+
+## M0 工程与部署验收
 
 详见 [M0 验收记录](docs/M0验收记录.md)。
 
@@ -131,7 +150,7 @@ docker compose up -d
 
 ## 下一步
 
-按 [落地计划](docs/落地计划.md) 进入 M1：创建/加入房间、大厅、二维码、snapshot、WebSocket 鉴权。
+按 [落地计划](docs/落地计划.md) 进入 M2：开局、初始资金、玩家付款、银行台、工资、幂等和流水。服务器 HTTPS 部署在功能稳定后统一验证。
 
 ## 合规边界
 

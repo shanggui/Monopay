@@ -15,7 +15,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "screenshot": "node scripts/screenshot.mjs"
+    "screenshot": "node scripts/screenshot.mjs",
+    "flow:m1": "node scripts/m1-flow.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",

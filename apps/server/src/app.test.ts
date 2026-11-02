@@ -1,9 +1,11 @@
+import type { FastifyInstance } from 'fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { buildApp } from './app'
 
-const app = buildApp()
+let app: FastifyInstance
 
 beforeAll(async () => {
+  app = await buildApp()
   await app.ready()
 })
 

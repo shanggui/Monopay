@@ -17,17 +17,20 @@
   "dependencies": {
     "@fastify/helmet": "^13.0.0",
     "@fastify/static": "^10.0.0",
+    "@fastify/websocket": "^11.3.6",
     "@monopay/ledger-core": "workspace:*",
     "@monopay/shared": "workspace:*",
     "better-sqlite3": "^13.0.0",
     "dotenv": "^17.0.0",
     "drizzle-orm": "^0.45.0",
     "fastify": "^5.0.0",
+    "ws": "^8.22.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^24.19.2",
+    "@types/ws": "^8.18.2",
     "drizzle-kit": "^0.31.0",
     "tsup": "^9.0.0",
     "tsx": "^4.0.0",
