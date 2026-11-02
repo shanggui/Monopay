@@ -125,7 +125,7 @@ docker compose up -d
 - [x] 生产构建 + SPA fallback
 - [x] Dockerfile / Compose / Caddy
 - [x] CI / GHCR workflow
-- [ ] 首次 GitHub Actions 镜像
+- [x] 首次 GitHub Actions 镜像（`sha-738b12c`）
 - [ ] 服务器 HTTPS 部署
 - [ ] 重启持久化 / 回滚演练
 
