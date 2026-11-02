@@ -1,5 +1,5 @@
-import type { RoomConfig } from '@monopay/shared'
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import type { RankingEntry, RoomConfig } from '@monopay/shared'
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const roomStatuses = ['waiting', 'playing', 'settling', 'settled', 'dissolved'] as const
 export type RoomStatus = (typeof roomStatuses)[number]
@@ -83,6 +83,7 @@ export const transactionCategories = [
   'trade',
   'salary',
   'refund',
+  'reversal',
   'correction',
   'other',
 ] as const
@@ -109,6 +110,8 @@ export const transactions = sqliteTable(
     amount: integer('amount').notNull(),
     balanceAfterFrom: integer('balance_after_from'),
     balanceAfterTo: integer('balance_after_to'),
+    refundOf: text('refund_of'),
+    reversalOf: text('reversal_of'),
     category: text('category', { enum: transactionCategories }).notNull(),
     note: text('note'),
     status: text('status', { enum: transactionStatuses }).notNull().default('success'),
@@ -121,6 +124,38 @@ export const transactions = sqliteTable(
     uniqueIndex('transactions_room_request_unique').on(table.roomId, table.clientRequestId),
     index('transactions_room_created_idx').on(table.roomId, table.createdAt),
   ],
+)
+
+export const assetSnapshots = sqliteTable(
+  'asset_snapshots',
+  {
+    roomId: text('room_id')
+      .notNull()
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+    playerId: text('player_id')
+      .notNull()
+      .references(() => players.id, { onDelete: 'cascade' }),
+    propertyValue: integer('property_value').notNull().default(0),
+    debt: integer('debt').notNull().default(0),
+    note: text('note'),
+    updatedBy: text('updated_by'),
+    reason: text('reason'),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.roomId, table.playerId] })],
+)
+
+export const settlements = sqliteTable(
+  'settlements',
+  {
+    id: text('id').primaryKey(),
+    roomId: text('room_id')
+      .notNull()
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+    rankingsJson: text('rankings_json', { mode: 'json' }).$type<RankingEntry[]>().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  },
+  (table) => [uniqueIndex('settlements_room_unique').on(table.roomId)],
 )
 
 export const appMeta = sqliteTable('app_meta', {

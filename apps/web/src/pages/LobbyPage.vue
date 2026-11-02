@@ -109,8 +109,10 @@ async function renderQr(): Promise<void> {
 function handleSocketEvent(event: WsServerEvent): void {
   if (
     event.type === 'player_joined' ||
+    event.type === 'player_updated' ||
     event.type === 'room_updated' ||
-    event.type === 'transaction'
+    event.type === 'transaction' ||
+    event.type === 'settlement'
   ) {
     void refresh().catch(() => undefined)
   }
@@ -343,7 +345,21 @@ onUnmounted(() => {
                 切换到银行台
               </button>
 
-              <button class="ghost-button" type="button" @click="dissolve">
+              <button
+                v-if="room.status === 'settling' || room.status === 'settled'"
+                class="secondary-button"
+                type="button"
+                @click="router.push(`/room/${code}/settlement`)"
+              >
+                进入对账
+              </button>
+
+              <button
+                v-if="room.status !== 'settled' && room.status !== 'dissolved'"
+                class="ghost-button"
+                type="button"
+                @click="dissolve"
+              >
                 <LogOut :size="16" :stroke-width="1.8" />
                 解散房间
               </button>
@@ -357,6 +373,14 @@ onUnmounted(() => {
             <p v-else-if="room.status === 'waiting'" class="waiting-note">
               等待房主开始游戏。开局后不能加入新玩家。
             </p>
+            <button
+              v-else-if="room.status === 'settling' || room.status === 'settled'"
+              class="secondary-button"
+              type="button"
+              @click="router.push(`/room/${code}/settlement`)"
+            >
+              进入对账
+            </button>
             <p v-else class="waiting-note">房间已经结束，只能查看。</p>
 
             <p v-if="error" class="form-error">{{ error }}</p>

@@ -6,7 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import TransactionRow from '../components/TransactionRow.vue'
 import { categoryLabels, formatMoney } from '../lib/format'
-import { bankCollect, bankPay, getSnapshot, salary } from '../services/api'
+import { bankCollect, bankPay, endGame, getSnapshot, salary, setBankrupt } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
 
@@ -74,6 +74,30 @@ async function refresh(): Promise<void> {
   if (!token) throw new Error('本机没有这桌的凭证')
   const data = await getSnapshot(code.value, token)
   session.setSnapshot(data)
+}
+
+async function finish(): Promise<void> {
+  const token = session.token
+  if (!token) return
+  if (!window.confirm('结束游戏后进入结算中；确认结算前还可以返回对局。')) return
+  try {
+    const data = await endGame(code.value, token)
+    session.setSnapshot(data)
+    await router.push(`/room/${code.value}/settlement`)
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '结束游戏失败'
+  }
+}
+
+async function toggleBankrupt(playerId: string, bankrupt: boolean): Promise<void> {
+  const token = session.token
+  if (!token) return
+  try {
+    const data = await setBankrupt(code.value, playerId, bankrupt, token)
+    session.setSnapshot(data)
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '标记破产失败'
+  }
 }
 
 async function submit(): Promise<void> {
@@ -224,6 +248,30 @@ onUnmounted(() => {
             <Wallet :size="18" :stroke-width="1.8" />
             切换到我的账本
           </button>
+          <button
+            class="secondary-button"
+            type="button"
+            @click="router.push(`/room/${code}/transactions`)"
+          >
+            <ReceiptText :size="18" :stroke-width="1.8" />
+            全部流水
+          </button>
+          <button
+            v-if="room.status === 'playing'"
+            class="secondary-button"
+            type="button"
+            @click="finish"
+          >
+            结束游戏
+          </button>
+          <button
+            v-if="room.status !== 'playing'"
+            class="secondary-button"
+            type="button"
+            @click="router.push(`/room/${code}/settlement`)"
+          >
+            对账
+          </button>
         </div>
 
         <section class="bank-grid">
@@ -248,6 +296,14 @@ onUnmounted(() => {
                 <strong class="balance-row__amount">
                   {{ formatMoney(player.balance) }} <small>M</small>
                 </strong>
+                <button
+                  class="mini-button"
+                  type="button"
+                  :class="{ 'mini-button--danger': player.status !== 'bankrupt' }"
+                  @click="toggleBankrupt(player.id, player.status !== 'bankrupt')"
+                >
+                  {{ player.status === 'bankrupt' ? '取消破产' : '标记破产' }}
+                </button>
               </div>
             </div>
           </div>

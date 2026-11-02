@@ -43,6 +43,16 @@ const router = createRouter({
       name: 'pay',
       component: () => import('../pages/PayPage.vue'),
     },
+    {
+      path: '/room/:code/transactions',
+      name: 'transactions',
+      component: () => import('../pages/TransactionsPage.vue'),
+    },
+    {
+      path: '/room/:code/settlement',
+      name: 'settlement',
+      component: () => import('../pages/SettlementPage.vue'),
+    },
   ],
   scrollBehavior: () => ({ top: 0 }),
 })

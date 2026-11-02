@@ -13,6 +13,7 @@ export const categoryLabels: Record<TransactionCategory, string> = {
   trade: '交易',
   salary: '工资',
   refund: '退款',
+  reversal: '冲正',
   correction: '矫正',
   other: '其他',
 }

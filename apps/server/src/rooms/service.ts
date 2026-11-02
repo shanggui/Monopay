@@ -25,7 +25,7 @@ import {
 import { env } from '../env'
 import { AppError } from '../lib/errors'
 import { createRoomCode, createToken, hashToken } from '../lib/tokens'
-import { getBankSummary, getRecentTransactions } from './ledger'
+import { getAssets, getBankSummary, getRecentTransactions, getSettlement } from './ledger'
 
 type RoomRow = typeof rooms.$inferSelect
 type PlayerRow = typeof players.$inferSelect
@@ -334,6 +334,8 @@ export function getSnapshot(auth: AuthContext): RoomSnapshot {
     players: playerRows.map((row) => toPlayerView(row, room.hostPlayerId)),
     transactions: getRecentTransactions(room.id),
     bankSummary: getBankSummary(room.id),
+    assets: getAssets(room.id),
+    settlement: getSettlement(room.id),
     lastSeq: room.seq,
   }
 }

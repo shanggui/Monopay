@@ -6,7 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import TransactionRow from '../components/TransactionRow.vue'
 import { formatMoney } from '../lib/format'
-import { getSnapshot } from '../services/api'
+import { endGame, getSnapshot } from '../services/api'
 import { connectRoomSocket, type RoomSocket, type SocketStatus } from '../services/ws'
 import { useSessionStore } from '../stores/session'
 
@@ -25,6 +25,8 @@ const me = computed(() => snapshot.value?.me ?? null)
 const room = computed(() => snapshot.value?.room ?? null)
 const players = computed<PlayerView[]>(() => snapshot.value?.players ?? [])
 const transactions = computed(() => snapshot.value?.transactions ?? [])
+const isHost = computed(() => snapshot.value?.me.isHost ?? false)
+const canOperate = computed(() => room.value?.status === 'playing')
 const canSwitchBank = computed(() =>
   Boolean(snapshot.value?.me.isHost && snapshot.value.me.isPlayer),
 )
@@ -46,9 +48,23 @@ function handleSocketEvent(event: WsServerEvent): void {
   if (
     event.type === 'transaction' ||
     event.type === 'room_updated' ||
-    event.type === 'player_joined'
+    event.type === 'player_joined' ||
+    event.type === 'player_updated' ||
+    event.type === 'settlement'
   ) {
     void refresh().catch(() => undefined)
+  }
+}
+
+async function finish(): Promise<void> {
+  if (!isHost.value || !session.token) return
+  if (!window.confirm('结束游戏后进入结算中；确认结算前还可以返回对局。')) return
+  try {
+    const data = await endGame(code.value, session.token)
+    session.setSnapshot(data)
+    await router.push(`/room/${code.value}/settlement`)
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : '结束游戏失败'
   }
 }
 
@@ -144,13 +160,47 @@ onUnmounted(() => {
         </section>
 
         <div class="ledger-actions">
-          <button class="primary-button" type="button" @click="goPay('player')">
+          <button
+            class="primary-button"
+            type="button"
+            :disabled="!canOperate"
+            @click="goPay('player')"
+          >
             <ArrowLeftRight :size="18" :stroke-width="1.9" />
             付款
           </button>
-          <button class="secondary-button" type="button" @click="goPay('bank')">
+          <button
+            class="secondary-button"
+            type="button"
+            :disabled="!canOperate"
+            @click="goPay('bank')"
+          >
             <Landmark :size="18" :stroke-width="1.8" />
             缴税/罚款
+          </button>
+          <button
+            class="secondary-button"
+            type="button"
+            @click="router.push(`/room/${code}/transactions`)"
+          >
+            <ReceiptText :size="18" :stroke-width="1.8" />
+            全部流水
+          </button>
+          <button
+            v-if="isHost && canOperate"
+            class="secondary-button"
+            type="button"
+            @click="finish"
+          >
+            结束游戏
+          </button>
+          <button
+            v-if="room.status !== 'playing'"
+            class="secondary-button"
+            type="button"
+            @click="router.push(`/room/${code}/settlement`)"
+          >
+            对账
           </button>
           <button
             v-if="canSwitchBank"

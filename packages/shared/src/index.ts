@@ -69,6 +69,7 @@ export const transactionCategorySchema = z.enum([
   'trade',
   'salary',
   'refund',
+  'reversal',
   'correction',
   'other',
 ])
@@ -129,9 +130,82 @@ export const salaryRequestSchema = z.object({
 
 export type SalaryRequest = z.infer<typeof salaryRequestSchema>
 
+export const refundRequestSchema = z.object({
+  transactionId: z.string().min(1),
+  clientRequestId: z.string().trim().min(8).max(80),
+})
+
+export type RefundRequest = z.infer<typeof refundRequestSchema>
+
+export const reverseRequestSchema = z.object({
+  transactionId: z.string().min(1),
+  reason: z.string().trim().min(1).max(80),
+  clientRequestId: z.string().trim().min(8).max(80),
+})
+
+export type ReverseRequest = z.infer<typeof reverseRequestSchema>
+
+export const bankruptRequestSchema = z.object({
+  playerId: z.string().min(1),
+  bankrupt: z.boolean(),
+})
+
+export type BankruptRequest = z.infer<typeof bankruptRequestSchema>
+
+export const assetsRequestSchema = z.object({
+  playerId: z.string().optional(),
+  propertyValue: z.number().int().min(0).max(1_000_000_000),
+  debt: z.number().int().min(0).max(1_000_000_000),
+  note: z.string().trim().max(80).optional(),
+  reason: z.string().trim().max(80).optional(),
+})
+
+export type AssetsRequest = z.infer<typeof assetsRequestSchema>
+
+export interface AssetView {
+  playerId: string
+  nickname: string
+  avatar: string | null
+  cash: number
+  propertyValue: number
+  debt: number
+  net: number
+  note: string | null
+  updatedBy: string | null
+  updatedAt: string | null
+  reason: string | null
+}
+
+export interface RankingEntry {
+  rank: number
+  playerId: string
+  nickname: string
+  avatar: string | null
+  cash: number
+  propertyValue: number
+  debt: number
+  net: number
+  bankrupt: boolean
+}
+
+export interface SettlementView {
+  rankings: RankingEntry[]
+  createdAt: string
+}
+
+export type TransactionFilter = 'all' | 'sent' | 'received' | 'bank'
+
+export interface TransactionPage {
+  items: TransactionView[]
+  hasMore: boolean
+  nextCursor: number | null
+}
+
 export interface TransactionView {
   id: string
   seq: number
+  refundOf: string | null
+  reversalOf: string | null
   fromType: 'player' | 'bank'
   fromPlayerId: string | null
   fromName: string
@@ -189,6 +263,8 @@ export interface RoomSnapshot {
   players: PlayerView[]
   transactions: TransactionView[]
   bankSummary: BankSummary
+  assets: AssetView[]
+  settlement: SettlementView | null
   lastSeq: number
 }
 
@@ -210,8 +286,10 @@ export type WsClientMessage = { type: 'auth'; roomCode: string; token: string } 
 export type WsServerEvent =
   | { type: 'ready'; data: { roomCode: string; playerId: string; isHost: boolean } }
   | { type: 'player_joined'; data: { player: PlayerView } }
+  | { type: 'player_updated'; data: { player: PlayerView } }
   | { type: 'room_updated'; data: { status: RoomStatus; seq: number } }
   | { type: 'transaction'; data: { transaction: TransactionView } }
+  | { type: 'settlement'; data: { rankings: RankingEntry[] } }
   | { type: 'pong' }
   | { type: 'error'; data: { code: string; message: string } }
 
