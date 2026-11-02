@@ -28,22 +28,24 @@ Monopay 是给实体桌游用的电子账本。棋盘、骰子和卡牌照常玩
 
 ## 用 Docker Compose 部署
 
-### 1. 复制文件
+### 1. 创建目录并下载文件
 
 ```bash
 mkdir -p /opt/monopay/{data,backups}
 cd /opt/monopay
 
-cp /path/to/Monopay/deploy/compose.yaml ./compose.yaml
-cp /path/to/Monopay/deploy/.env.example ./.env
+curl -fsSL \
+  -o compose.yaml https://raw.githubusercontent.com/shanggui/Monopay/main/deploy/compose.yaml \
+  -o .env https://raw.githubusercontent.com/shanggui/Monopay/main/deploy/.env.example
 
 sudo chown -R 1000:1000 data backups
+chmod 600 .env
 ```
 
-文件名：
+只下载两个文件：
 
-- `compose.yaml`：保持原名，不要改。
-- `.env.example`：必须复制成 `.env`，Compose 会自动读取。
+- `compose.yaml`：保持原名。
+- `.env.example` 下载时直接改名成 `.env`；Compose 会自动读取。
 - `data/`、`backups/`：保持目录名，已经在 compose 里挂载。
 
 Compose 只启动 app。TLS 反向代理由服务器现有服务承担，不包含在 Compose 里。
