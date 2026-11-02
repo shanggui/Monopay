@@ -6,8 +6,6 @@ coverage
 .git
 .github
 docs
-preview-v2
-prototype
 data
 artifacts
 *.png

@@ -2,16 +2,29 @@
 
 > 只接管钱，不接管棋盘。2–6 人桌游的电子银行账本。
 
-当前进度：**M5 本地验收完成，等待生产部署**。完整账本、纠错、结算、六套主题、音效和实时反馈已本地通过；1000 笔重放、6 人并发、备份恢复、安全头和重启持久化已验证。服务器 HTTPS 部署是最后一步。
+[![CI](https://github.com/shanggui/Monopay/actions/workflows/ci.yml/badge.svg)](https://github.com/shanggui/Monopay/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/release-v0.1.1-2563EB)](https://github.com/shanggui/Monopay/releases/tag/v0.1.1)
+[![Node](https://img.shields.io/badge/node-%3E%3D24-339933)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-12.14-F69220)](https://pnpm.io/)
 
-## 技术栈
+实体桌游继续用棋盘、骰子和卡牌；**钱由 Monopay 接管**。开桌、发初始资金、付款、退款、银行收款、对账和结算都在浏览器完成。所有设备打开同一个 Web 应用，手机扫码即可加入。
 
-- Web：Vue 3 + Vite + TypeScript + Vant 4 + Tailwind CSS
-- Server：Fastify 5 + TypeScript + SQLite + Drizzle
-- 共享：`packages/shared`（Zod / API 类型）、`packages/ledger-core`（纯账本规则）
-- 部署：Docker Compose + Caddy + GHCR
+![Monopay 首页](docs/images/m5-home-1440.png)
 
-## 本地开发
+## 功能
+
+- **房间**：银行-only / 双身份房主、房号 + 二维码加入、2–6 名玩家、断线重连。
+- **账本**：初始资金、玩家付款、银行付款/收款、工资、余额不足保护、幂等重试。
+- **纠错**：收款方退款、房主冲正、矫正原因、破产标记/取消。
+- **流水**：全部/我付出/我收到/银行、分页、详情、退款/冲正入口。
+- **结算**：结束游戏 → 资产/负债 → 净资产排名 → 只读；银行-only 不参与排名。
+- **体验**：六套主题、深色、数字键盘、到账 toast、音效/震动、骨架、页面过渡。
+- **实时**：WebSocket 房间事件、收款人到账提示、离线横幅、回前台刷新。
+- **安全**：CSP/HSTS、创建/加入/付款限流、token hash、日志脱敏、7 天数据清理。
+
+> 仅使用游戏币 **M**，不可充值、提现或兑换现金。
+
+## 快速开始
 
 要求：Node.js 24+、pnpm 12+。
 
@@ -36,9 +49,10 @@ pnpm format:check
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm audit --prod
 ```
 
-浏览器流程（需要先启动服务）：
+浏览器流程（先启动服务）：
 
 ```bash
 pnpm flow:m1
@@ -49,7 +63,7 @@ pnpm load:m5
 pnpm viewports:m5
 ```
 
-生产构建后可直接跑：
+生产构建：
 
 ```bash
 pnpm build
@@ -58,159 +72,88 @@ node apps/server/dist/index.js
 
 默认从 `apps/web/dist` 提供 SPA，API 和静态文件同源。
 
-## 目录
+## 架构
 
 ```text
-apps/web                 Vue 3 前端
-apps/server              Fastify + SQLite
-packages/shared          前后端共享类型/Zod
-packages/ledger-core     纯账本规则（金额/扣款/入账）
-deploy                   compose / Caddy / 生产 env 示例
-.github/workflows        CI + GHCR 镜像发布
-Dockerfile               多阶段生产镜像
-docs                     产品、UI、技术、落地计划
+apps/
+  web/                    Vue 3 + Vite + TypeScript
+  server/                 Fastify 5 + Drizzle + SQLite
+packages/
+  shared/                 Zod schema、API / WS 类型
+  ledger-core/            纯账本规则（金额/扣款/入账）
+deploy/                   Compose、Caddy、部署/ smoke 脚本
+docs/                     产品、设计、验收、运维文档
+scripts/                  Playwright 流程、压测、截图
+.github/workflows/        CI + 多架构镜像发布
+Dockerfile                多阶段生产镜像
 ```
 
-## 镜像与 GHCR
+关键设计：
 
-GitHub Actions 在 `main` 和 `v*` tag 上构建镜像：
+- **单 app 副本 + 进程内 WebSocket**，SQLite WAL；不支持水平扩容。
+- 所有余额变动写 `transactions`，保存双方交易后余额与房间 `seq`。
+- 客户端 `clientRequestId` 幂等；同键不同参数拒绝。
+- 退款/冲正保留原流水并通过 `refundOf` / `reversalOf` 关联。
+- 主题只切 CSS Variables；默认 A 奶油与钴蓝。
+
+## 部署
+
+有域名（Caddy 自动 HTTPS）：
 
 ```text
-ghcr.io/shanggui/monopay:main
-ghcr.io/shanggui/monopay:sha-xxxxxxx
-ghcr.io/shanggui/monopay:v0.1.0
+deploy/compose.yaml
+deploy/Caddyfile
+deploy/.env.example
+deploy/deploy.sh
+deploy/smoke.sh
 ```
 
-第一次发布后，到 GitHub：
+无域名 / IP + HTTP：
 
 ```text
-仓库 → Packages → monopay → Package settings → Danger Zone → Change visibility → Public
+deploy/compose.ip.yaml
+deploy/.env.ip.example
 ```
-
-否则服务器 `docker pull` 需要先 `docker login ghcr.io`。
-
-手工触发：GitHub Actions → `publish-image` → Run workflow。
-
-## 服务器部署
-
-服务器只需要 Docker Engine + Compose，不需要 Node。
 
 ```bash
-mkdir -p /opt/monopay/data
+mkdir -p /opt/monopay/{data,backups}
 cd /opt/monopay
-
-# 复制 deploy/compose.yaml、deploy/Caddyfile、deploy/.env.example 到当前目录
-cp /path/to/deploy/compose.yaml .
-cp /path/to/deploy/Caddyfile .
-cp /path/to/deploy/.env.example .env
-
-# 编辑 .env：DOMAIN / PUBLIC_URL / MONOPAY_TAG
-sudo chown -R 1000:1000 data
-
-docker compose pull
-docker compose up -d
-docker compose ps
+cp /path/to/Monopay/deploy/{compose.yaml,Caddyfile,deploy.sh,smoke.sh} .
+cp /path/to/Monopay/deploy/.env.example .env
+sudo chown -R 1000:1000 data backups
+# 编辑 DOMAIN / PUBLIC_URL / MONOPAY_TAG
+chmod +x deploy.sh smoke.sh
+./deploy.sh
 ```
 
-打开 `https://<DOMAIN>/readyz` 验证。Caddy 会自动申请 HTTPS 证书。
+完整步骤、备份恢复、回滚和排障见 **[部署运行手册](docs/部署运行手册.md)**。
 
-完整步骤、备份/恢复、回滚和排障见 [部署运行手册](docs/部署运行手册.md)。数据边界见 [隐私与数据删除](docs/隐私与数据删除.md)。
+镜像：
 
-更新：
-
-```bash
-docker compose pull
-docker compose up -d
+```text
+ghcr.io/shanggui/monopay:v0.1.1   # amd64 + arm64
+ghcr.io/shanggui/monopay:latest
 ```
 
-回滚：把 `.env` 里的 `MONOPAY_TAG` 改回旧版本，再执行上面两条命令。
+## 状态与限制
 
-> 如果服务器已有 Nginx 且 80/443 被占用，删掉 compose 里的 `caddy` 服务，把 app 改成
-> `ports: ["127.0.0.1:3000:3000"]`，由现有 Nginx 反代。
->
-> 没有域名时使用 [deploy/compose.ip.yaml](deploy/compose.ip.yaml) 与
-> [deploy/.env.ip.example](deploy/.env.ip.example)，走 `http://IP:3000`；可完成功能验证，
-> 但不等于 HTTPS 生产验收。
+- 当前版本：`v0.1.1`；本地 M0–M5 验收完成。
+- 服务器公网 HTTPS 部署待执行；真实 iOS/Android 实机与真实桌游试玩待完成。
+- 单副本；SQLite；无离线队列、无真钱、无充值/提现。
+- 房间 24 小时无活动自动解散；已结算/已解散房间 7 天后清理。
 
-## M1 房间生命周期（本地完成）
+## 文档
 
-- 创建房间：银行-only / 双身份、初始资金、人数、工资、大额阈值、音效。
-- 加入房间：6 位房号、昵称、头像；重复凭证按重连处理。
-- 大厅：房号、二维码、复制链接、玩家列表、房主/银行标识、实时连接状态。
-- 服务端：`POST /api/rooms`、`POST /api/rooms/:code/join`、`GET /api/rooms/:code/snapshot`、`POST /api/rooms/:code/actions/dissolve`。
-- WebSocket：首帧 `auth` 鉴权、`ready` / `player_joined` / `room_updated`、断线重连。
-- 数据库：`rooms`、`players`、`room_events`，Drizzle 迁移 `0001`。
-- 24 小时无活动房间自动标记解散。
+- [文档索引](docs/README.md)
+- [产品设计](docs/产品设计.md)
+- [UI 设计规范](docs/UI设计规范.md)
+- [技术路线（Web）](docs/技术路线-Web版.md)
+- [M5 验收记录](docs/M5验收记录.md)
+- [部署运行手册](docs/部署运行手册.md)
+- [隐私与数据删除](docs/隐私与数据删除.md)
+- [Changelog](CHANGELOG.md)
 
-详见 [M1 验收记录](docs/M1验收记录.md)。
+## 参与
 
-## M2 账本核心与付款（本地完成）
-
-- 开局：房主开始，至少 2 名玩家，初始资金只发一次。
-- 玩家付款：玩家 → 玩家 / 玩家 → 银行；余额不足拒绝；双身份可切换“我的钱/银行”。
-- 银行台：发工资、银行付款、银行收款、累计发行/回收/净投放。
-- 幂等：`clientRequestId` 唯一；重复请求返回原交易；同键不同参数拒绝。
-- 流水：最近流水、双方、类别、备注、状态；WS `transaction` 实时刷新。
-- 页面：我的账本、付款页、银行台；大厅开始游戏后自动进入。
-- 测试：`ledger-core` 3 + server 21；包含 100 笔对账、6 笔并发、幂等、余额不足、权限。
-
-详见 [M2 验收记录](docs/M2验收记录.md)。
-
-## M3 纠错、破产与结算（本地完成）
-
-- 退款：收款方发起、全额原路、关联原交易；初始资金/退款/冲正不可再退。
-- 冲正：房主操作、必须原因、保留原交易；退款/冲正不可再冲。
-- 破产：房主标记/取消；不能主动付款/退款，可被动收款；排名保留标记。
-- 流水：全部/我付出/我收到/银行、游标分页、详情、退款/冲正入口。
-- 对账：结束游戏 → 结算中 → 资产/负债 → 净资产排名 → 只读。
-- 排名：并列名次；银行-only 房主不参与。
-- 测试：`ledger-core` 3 + server 30；含退款、冲正、破产、结算、只读。
-
-详见 [M3 验收记录](docs/M3验收记录.md)。
-
-## M4 体验与实时打磨（本地完成）
-
-- 主题：A 奶油与钴蓝默认，B–F 六套；localStorage；F 深色翻转。
-- 反馈：收款人专属 toasts/音效/震动；Web Audio 合成；静音持久化。
-- 付款：自绘数字键盘；快捷金额；余额不足/离线禁用。
-- 动效：160ms 页面过渡、成功卡、骨架屏、`prefers-reduced-motion`。
-- 实时：WS 状态、离线横幅、回前台刷新、自动重连。
-- 图标：纸卡 M favicon、manifest、theme-color。
-- 回归：`flow:m2`、`flow:m3`、`flow:m4` 均通过。
-
-详见 [M4 验收记录](docs/M4验收记录.md)。
-
-## M5 验收、安全与上线准备（本地完成）
-
-- 测试：`ledger-core` 3 + server 32，共 35；lint/format/typecheck/build 全通过。
-- 重放：1000 笔顺序付款余额/流水一致；6 人并发付款 6/6 成功。
-- 恢复：SQLite Online Backup → 新库 → `/readyz` 200，房间/流水计数一致。
-- 重启：同 DB 重启后房间与凭证仍可读。
-- 安全：CSP/HSTS/Helmet、创建/加入/付款限流、token hash、日志脱敏；`pnpm audit --prod` 0 漏洞。
-- 布局：390/768/1440 无横向滚动。
-- 文档：运行手册、隐私与数据删除、Changelog。
-
-详见 [M5 验收记录](docs/M5验收记录.md)。
-
-## M0 工程与部署验收
-
-详见 [M0 验收记录](docs/M0验收记录.md)。
-
-- [x] pnpm workspace
-- [x] Vue/Vite 前端 + 默认主题 A
-- [x] Fastify `/healthz` / `/readyz`
-- [x] SQLite + Drizzle 初始迁移 + `app_meta`
-- [x] 生产构建 + SPA fallback
-- [x] Dockerfile / Compose / Caddy
-- [x] CI / GHCR workflow
-- [x] 首次 GitHub Actions 镜像（`sha-738b12c`）
-- [ ] 服务器 HTTPS 部署
-- [ ] 重启持久化 / 回滚演练
-
-## 下一步
-
-本地 M0–M5 已完成。剩余：把 `v0.1.0` 镜像部署到用户的服务器，完成 HTTPS、smoke test、备份定时任务和回滚演练。步骤见 [部署运行手册](docs/部署运行手册.md)。
-
-## 合规边界
-
-仅使用游戏币 M，不可充值、提现、兑换现金。不接入真钱，不登记真实资产。
+- [贡献指南](CONTRIBUTING.md)
+- [安全策略](SECURITY.md)

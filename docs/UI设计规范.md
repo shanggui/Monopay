@@ -180,7 +180,7 @@
 - 现有 icon 的“深绿底 + 金币 M”也需要退出默认：它和赌场金币的联想太强。
 - 新方向：圆角方牌 + 奶油纸卡/回单 + 墨蓝色 `M` 字标；或 `M` 字标 + 钴蓝圆点。
 - 不用金币外圈、金属高光、赌场绿绒、筹码叠图。
-- 图标先出 2–3 个黑白/单色草图，再上色；确认后再替换 `assets/icon-*`。
+- 图标先出 2–3 个黑白/单色草图，再上色；确认后再替换 `docs/design/brand/icon-*`。
 
 ---
 
@@ -371,8 +371,8 @@
 - 主题选择存 localStorage（`monopay-theme`）；默认 `cobalt`，非法值回退 `cobalt`。
 - 深色主题 F 需要同时翻转 `--ink` / `--paper-0` / `--line`，不能只换主色。
 - Vant 只用行为组件（NumberKeyboard、Popup、Field、Dialog），皮肤用自定义 token 覆盖。
-- 旧 `prototype/index.html` 是 v1 深绿金币方向，仅保留布局/交互结构参考，不再作为视觉验收依据。
-- 新配色预览：`preview-v2/index.html`（默认 A）、`preview-v2/themes.html`（A–F 六套）。
+- 旧 `docs/design/prototype/index.html` 是 v1 深绿金币方向，仅保留布局/交互结构参考，不再作为视觉验收依据。
+- 新配色预览：`docs/design/preview-v2/index.html`（默认 A）、`docs/design/preview-v2/themes.html`（A–F 六套）。
 
 ---
 

@@ -456,7 +456,7 @@ confirm: 房主确认
 
 ### 8.6 视觉方向（默认 A + 主题库）
 
-> 完整视觉、组件、页面内容与文案规范见 [UI设计规范.md](UI设计规范.md)。旧 [prototype/index.html](../prototype/index.html) 是深绿金币方向，仅保留页面结构参考，不作为视觉验收依据。
+> 完整视觉、组件、页面内容与文案规范见 [UI设计规范.md](UI设计规范.md)。旧 [视觉原型](design/prototype/index.html) 是深绿金币方向，仅保留页面结构参考，不作为视觉验收依据。
 
 - 默认方向 A：**桌游银行 · 奶油与钴蓝**；像一盒桌游里的银行配件，不像赌桌。
 - 材质：奶油纸卡 + 墨蓝字 + 钴蓝主色 + 珊瑚支出 + 青绿收入；不用深绿桌布、金币、黄铜、筹码、金属渐变。
@@ -470,8 +470,8 @@ confirm: 房主确认
 - 设计 tokens：`paper / ink / primary / income / expense / line` 统一放 Tailwind theme / CSS 变量；主题只挂根节点 `data-theme`，存 localStorage。
 - 字体：系统字体（PingFang SC/Noto Sans SC）；金额用等宽数字；不加载复古衬线/书法字体。
 - 图标：Lucide SVG；用银行/回单/用户/箭头，不用金币/筹码/骰子/扑克。
-- 品牌：旧“深绿底 + 金币 M”图标退出默认；重做为纸卡/回单 + M 字标，确认后再替换 `assets/icon-*`。
-- 新配色预览：`preview-v2/index.html`（A）、`preview-v2/themes.html`（A–F）。
+- 品牌：旧“深绿底 + 金币 M”图标退出默认；重做为纸卡/回单 + M 字标，确认后再替换 `docs/design/brand/icon-*`。
+- 新配色预览：`docs/design/preview-v2/index.html`（A）、`docs/design/preview-v2/themes.html`（A–F）。
 
 ### 8.7 动效与流畅度
 
